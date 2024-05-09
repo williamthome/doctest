@@ -113,7 +113,15 @@ Currently, only exported functions can be tested.
 makes no sense;
 - [ ] Test and fix issues on umbrella applications;
 - [ ] Improve docs;
-- [ ] Implement `-moduledoc` tests in the same way that for `-doc`.
+- [ ] Implement `-moduledoc` tests in the same way that for `-doc`,
+      but creating a test function called` moduledoc_test/0`.
+- [ ] Add support for unbound variables, e.g.:
+      ```erlang
+      1> Foo = foo.
+      foo;
+      2> foo =:= Foo.
+      true
+      ```
 
 ## Sponsors
 

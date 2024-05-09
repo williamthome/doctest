@@ -227,6 +227,16 @@ join(Parts) ->
         end
     end, [], Parts).
 
+% TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
+%       ```erlang
+%       1> ok.
+%       2> ok.
+%       ```
+%       And this should be wrong:
+%       ```erlang
+%       9> error.
+%       8> error.
+%       ```
 rev_normalize([{right, R}, {more, M}, {left, L} | T], Acc) ->
     rev_normalize(T, [{<<L/binary, $\s, M/binary>>, R} | Acc]);
 rev_normalize([{right, R}, {more, MR}, {more, ML} | T], Acc) ->
