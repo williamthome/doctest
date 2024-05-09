@@ -1,0 +1,3 @@
+-module(doctest).
+
+-export([]).
