@@ -65,7 +65,7 @@ add_2_test() ->
     ].
 ```
 
-Note that the code is defined like the Erlang shell, starting with `1&gt `
+Note that the code is defined like the Erlang shell, starting with `N> `, where `N` is a number,
 and continues in multiple lines with `.. `. The result is a value without
 starting with those shell symbols.
 
