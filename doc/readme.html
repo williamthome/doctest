@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.31.2">
+    <meta name="project" content="doctest v0.1.0">
+
+
+    <title>Overview — doctest v0.1.0</title>
+    <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
+
+
+    <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
+    <script src="dist/handlebars.templates-A7S2WMC7.js"></script>
+    <script src="dist/sidebar_items-13DEE278.js"></script>
+
+      <script src="docs_config.js"></script>
+
+    <script async src="dist/html-JRPQ5PR6.js"></script>
+
+
+  </head>
+  <body data-type="extras" class="page-extra">
+    <script>
+
+      try {
+        var settings = JSON.parse(localStorage.getItem('ex_doc:settings') || '{}');
+
+        if (settings.theme === 'dark' ||
+           ((settings.theme === 'system' || settings.theme == null) &&
+             window.matchMedia('(prefers-color-scheme: dark)').matches)
+           ) {
+          document.body.classList.add('dark')
+        }
+      } catch (error) { }
+    </script>
+
+<div class="main">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<div class="background-layer"></div>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://github.com/williamthome/doctest" class="sidebar-projectName" translate="no">
+doctest
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-listNav" class="sidebar-listNav" role="tablist">
+      <li>
+        <button id="extras-list-tab-button" role="tab" data-type="extras" aria-controls="extras-tab-panel" aria-selected="true" tabindex="0">
+Pages
+        </button>
+      </li>
+
+        <li>
+          <button id="modules-list-tab-button" role="tab" data-type="modules" aria-controls="modules-tab-panel" aria-selected="false" tabindex="-1">
+            Modules
+          </button>
+        </li>
+
+
+    </ul>
+  </div>
+
+  <div id="extras-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="extras-list-tab-button">
+    <ul id="extras-full-list" class="full-list"></ul>
+  </div>
+
+    <div id="modules-tab-panel" class="sidebar-tabpanel" role="tabpanel" aria-labelledby="modules-list-tab-button" hidden>
+      <ul id="modules-full-list" class="full-list"></ul>
+    </div>
+
+
+</nav>
+
+<main class="content">
+  <output role="status" id="toast"></output>
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+      <div class="top-search">
+        <div class="search-settings">
+          <form class="search-bar" action="search.html">
+            <label class="search-label">
+              <span class="sr-only">Search documentation of doctest</span>
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </label>
+            <button type="submit" class="search-button" aria-label="Submit Search">
+              <i class="ri-search-2-line ri-lg" aria-hidden="true" title="Submit search"></i>
+            </button>
+            <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+              <i class="ri-close-line ri-lg" title="Cancel search"></i>
+            </button>
+          </form>
+          <div class="autocomplete">
+          </div>
+          <button class="icon-settings display-settings">
+            <i class="ri-settings-3-line"></i>
+            <span class="sr-only">Settings</span>
+          </button>
+        </div>
+
+      </div>
+
+<h1>
+
+    <a href="https://github.com/williamthome/doctest/blob/v0.1.0/README.md#L1" title="View Source" class="icon-action" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+
+  <span>doctest</span>
+</h1>
+
+<p>An OTP library to test <code class="inline">-doc</code> attributes.</p><h2 id="requirements" class="section-heading">
+  <a href="#requirements" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Requirements</span>
+</h2>
+<p>OTP &gt;= 27.</p><h2 id="installation" class="section-heading">
+  <a href="#installation" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Installation</span>
+</h2>
+<pre><code class="makeup erlang" translate="no"><span class="c1">% rebar.config</span><span class="w">
+</span><span class="p" data-group-id="5005329103-1">{</span><span class="ss">profiles</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5005329103-2">[</span><span class="w">
+    </span><span class="p" data-group-id="5005329103-3">{</span><span class="ss">test</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5005329103-4">[</span><span class="w">
+        </span><span class="p" data-group-id="5005329103-5">{</span><span class="ss">deps</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5005329103-6">[</span><span class="p" data-group-id="5005329103-7">{</span><span class="ss">doctest</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="p" data-group-id="5005329103-7">}</span><span class="p" data-group-id="5005329103-6">]</span><span class="p" data-group-id="5005329103-5">}</span><span class="w">
+    </span><span class="p" data-group-id="5005329103-4">]</span><span class="p" data-group-id="5005329103-3">}</span><span class="w">
+</span><span class="p" data-group-id="5005329103-2">]</span><span class="p" data-group-id="5005329103-1">}</span><span class="p">.</span></code></pre><h2 id="usage" class="section-heading">
+  <a href="#usage" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Usage</span>
+</h2>
+<h3 id="via-parse_transform" class="section-heading">
+  <a href="#via-parse_transform" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Via parse_transform</span>
+</h3>
+<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="9500774973-1">(</span><span class="ss">math</span><span class="p" data-group-id="9500774973-1">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">moduledoc</span><span class="w"> </span><span class="s">&quot;&quot;&quot;
+A module for basic arithmetic.
+&quot;&quot;&quot;</span><span class="p">.</span><span class="w">
+</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="9500774973-2">(</span><span class="p" data-group-id="9500774973-3">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="9500774973-3">]</span><span class="p" data-group-id="9500774973-2">)</span><span class="p">.</span><span class="w">
+</span><span class="w">
+</span><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="9500774973-4">(</span><span class="n">TEST</span><span class="p" data-group-id="9500774973-4">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="9500774973-5">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="9500774973-5">)</span><span class="p">.</span><span class="w">
+</span><span class="c1">% -doctest &lt;see the options section&gt;.</span><span class="w">
+</span><span class="p">-</span><span class="na">endif</span><span class="p">.</span><span class="w">
+</span><span class="w">
+</span><span class="p">-</span><span class="na">doc</span><span class="w"> </span><span class="s">&quot;&quot;&quot;
+Adds two numbers together.
+
+_Example_:
+```erlang
+1&gt; math:add(0, 1).
+1
+2&gt; math:add(
+.. 1,
+.. 1
+.. ).
+2
+```
+&quot;&quot;&quot;</span><span class="p">.</span><span class="w">
+</span><span class="nf">add</span><span class="p" data-group-id="9500774973-6">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p" data-group-id="9500774973-6">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="n">A</span><span class="o">+</span><span class="n">B</span><span class="p">.</span></code></pre><p>This will produce the file <code class="inline">&lt;project_cwd&gt;/test/math_DOCTEST.erl</code> with
+the following tests:</p><pre><code class="makeup erlang" translate="no"><span class="c1">% &lt;name&gt;_&lt;arity&gt;_test</span><span class="w">
+</span><span class="nf">add_2_test</span><span class="p" data-group-id="1178665727-1">(</span><span class="p" data-group-id="1178665727-1">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="p" data-group-id="1178665727-2">[</span><span class="w">
+        </span><span class="o">?</span><span class="nf">assertEqual</span><span class="p" data-group-id="1178665727-3">(</span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="1178665727-4">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1178665727-4">)</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1178665727-3">)</span><span class="p">,</span><span class="w">
+        </span><span class="o">?</span><span class="nf">assertEqual</span><span class="p" data-group-id="1178665727-5">(</span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="1178665727-6">(</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p" data-group-id="1178665727-6">)</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="1178665727-5">)</span><span class="w">
+    </span><span class="p" data-group-id="1178665727-2">]</span><span class="p">.</span></code></pre><p>Note that the code is defined like the Erlang shell, starting with <code class="inline">1&amp;gt</code>
+and continues in multiple lines with <code class="inline">..</code>. The result is a value without
+starting with those shell symbols.</p><h3 id="options" class="section-heading">
+  <a href="#options" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Options</span>
+</h3>
+<p>Options are defined via the <code class="inline">-doctest</code> attribute and can be defined multiple times.</p><h4>Available options</h4><ul><li><code class="inline">boolean()</code>: enable or disable tests.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">true</span><span class="p">.</span></code></pre></li><li><code class="inline">atom()</code>: define the test module name.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">math_DOCTEST</span><span class="p">.</span></code></pre></li><li><p><code class="inline">proplists:proplist()</code> | <code class="inline">all</code>: define the functions to be tested.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="2763195862-1">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="2763195862-1">]</span><span class="p">.</span></code></pre></li><li><p><code class="inline">string()</code> | <code class="inline">{abs, string()}</code> | <code class="inline">{cwd, string()}</code>: define the test file location.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="6177650065-1">{</span><span class="nb">abs</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/tmp/doctests&quot;</span><span class="p" data-group-id="6177650065-1">}</span><span class="p">.</span></code></pre></li><li><code class="inline">map()</code>: define all or partial options.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="9246357566-1">#{</span><span class="w">
+    </span><span class="ss">enabled</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">true</span><span class="p">,</span><span class="w">
+    </span><span class="ss">module</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">math_DOCTEST</span><span class="p">,</span><span class="w">
+    </span><span class="ss">funs</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="9246357566-2">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="9246357566-2">]</span><span class="p">,</span><span class="w">
+    </span><span class="ss">location</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="9246357566-3">{</span><span class="nb">abs</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/tmp/doctests&quot;</span><span class="p" data-group-id="9246357566-3">}</span><span class="w">
+</span><span class="p" data-group-id="9246357566-1">}</span><span class="p">.</span></code></pre></li></ul><h3 id="important" class="section-heading">
+  <a href="#important" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Important</span>
+</h3>
+<p>Currently, only exported functions can be tested.</p><h2 id="todo" class="section-heading">
+  <a href="#todo" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">TODO</span>
+</h2>
+<ul><li>[ ] All kinds of tests;</li><li>[ ] Ability to test modules via function and not only via <code class="inline">parse_transform</code>;</li><li>[ ] Maybe add a mechanism to test non-exported functions, but probably this
+makes no sense;</li><li>[ ] Test and fix issues on umbrella applications;</li><li>[ ] Improve docs;</li><li>[ ] Implement <code class="inline">-moduledoc</code> tests in the same way that for <code class="inline">-doc</code>.</li></ul><h2 id="sponsors" class="section-heading">
+  <a href="#sponsors" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Sponsors</span>
+</h2>
+<p>If you like this tool, please consider <a href="https://github.com/sponsors/williamthome">sponsoring me</a>.
+I'm thankful for your never-ending support :heart:</p><p>I also accept coffees :coffee:</p><p><a href="https://www.buymeacoffee.com/williamthome"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="&quot;Buy Me A Coffee&quot;"/></a></p><h2 id="contributing" class="section-heading">
+  <a href="#contributing" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Contributing</span>
+</h2>
+<h3 id="issues" class="section-heading">
+  <a href="#issues" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">Issues</span>
+</h3>
+<p>Feel free to <a href="https://github.com/williamthome/doctest/issues/new">submit an issue on Github</a>.</p><h2 id="license" class="section-heading">
+  <a href="#license" class="hover-link">
+    <i class="ri-link-m" aria-hidden="true"></i>
+  </a>
+  <span class="text">License</span>
+</h2>
+<p>Copyright (c) 2024 <a href="https://github.com/williamthome">William Fank Thomé</a></p><p><code class="inline">doctest</code> is 100% open source and community-driven. All components are available under the Apache 2 License on <a href="https://github.com/williamthome/doctest">GitHub</a>.</p><p>See <a href="license.html">LICENSE.md</a> for more information.</p>
+<div class="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="api-reference.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+API Reference
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="license.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+License
+        </span>
+      </a>
+
+  </div>
+</div>
+      <footer class="footer">
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/doctest/0.1.0" class="footer-hex-package">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/doctest/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/doctest/0.1.0/show/README.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Search HexDocs packages">
+              Search HexDocs
+            </button>
+
+              <a href="doctest.epub" title="ePub version">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.31.2) for the
+
+            <a href="https://erlang.org" title="Erlang" target="_blank" translate="no">Erlang programming language</a>
+
+        </p>
+
+      </footer>
+    </div>
+  </div>
+</main>
+</div>
+
+
+  </body>
+</html>

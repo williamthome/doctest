@@ -1,0 +1,7 @@
+-ifdef(OTP_RELEASE).
+  -if(?OTP_RELEASE < 27).
+    -error("doctest requires OTP 27 or higher.").
+  -endif.
+-else.
+    -error("doctest requires OTP 27 or higher.").
+-endif.

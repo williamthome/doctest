@@ -1,14 +1,13 @@
-{application, doctest,
- [{description, "An OTP library"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
-
-  {licenses, ["Apache-2.0"]},
-  {links, []}
- ]}.
+{application, doctest, [
+    {description, "An OTP library to test -doc attributes"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [kernel, stdlib, syntax_tools]},
+    {env, []},
+    {modules, []},
+    {licenses, ["Apache-2.0"]},
+    {links, [
+        {"GitHub", "https://github.com/williamthome/doctest"},
+        {"Sponsor", "https://github.com/sponsors/williamthome"}
+    ]}
+]}.
