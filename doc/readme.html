@@ -5,10 +5,10 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.31.2">
-    <meta name="project" content="doctest v0.1.0">
+    <meta name="project" content="doctest v0.2.0">
 
 
-    <title>Overview — doctest v0.1.0</title>
+    <title>Overview — doctest v0.2.0</title>
     <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
@@ -55,7 +55,7 @@
 doctest
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.1.0
+          v0.2.0
         </div>
       </div>
     </div>
@@ -117,7 +117,7 @@ Pages
 
 <h1>
 
-    <a href="https://github.com/williamthome/doctest/blob/v0.1.0/README.md#L1" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/williamthome/doctest/blob/v0.2.0/README.md#L1" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
@@ -139,11 +139,11 @@ Pages
   <span class="text">Installation</span>
 </h2>
 <pre><code class="makeup erlang" translate="no"><span class="c1">% rebar.config</span><span class="w">
-</span><span class="p" data-group-id="5005329103-1">{</span><span class="ss">profiles</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5005329103-2">[</span><span class="w">
-    </span><span class="p" data-group-id="5005329103-3">{</span><span class="ss">test</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5005329103-4">[</span><span class="w">
-        </span><span class="p" data-group-id="5005329103-5">{</span><span class="ss">deps</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5005329103-6">[</span><span class="p" data-group-id="5005329103-7">{</span><span class="ss">doctest</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="p" data-group-id="5005329103-7">}</span><span class="p" data-group-id="5005329103-6">]</span><span class="p" data-group-id="5005329103-5">}</span><span class="w">
-    </span><span class="p" data-group-id="5005329103-4">]</span><span class="p" data-group-id="5005329103-3">}</span><span class="w">
-</span><span class="p" data-group-id="5005329103-2">]</span><span class="p" data-group-id="5005329103-1">}</span><span class="p">.</span></code></pre><h2 id="usage" class="section-heading">
+</span><span class="p" data-group-id="0844214060-1">{</span><span class="ss">profiles</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0844214060-2">[</span><span class="w">
+    </span><span class="p" data-group-id="0844214060-3">{</span><span class="ss">test</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0844214060-4">[</span><span class="w">
+        </span><span class="p" data-group-id="0844214060-5">{</span><span class="ss">deps</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0844214060-6">[</span><span class="p" data-group-id="0844214060-7">{</span><span class="ss">doctest</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="p" data-group-id="0844214060-7">}</span><span class="p" data-group-id="0844214060-6">]</span><span class="p" data-group-id="0844214060-5">}</span><span class="w">
+    </span><span class="p" data-group-id="0844214060-4">]</span><span class="p" data-group-id="0844214060-3">}</span><span class="w">
+</span><span class="p" data-group-id="0844214060-2">]</span><span class="p" data-group-id="0844214060-1">}</span><span class="p">.</span></code></pre><h2 id="usage" class="section-heading">
   <a href="#usage" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -155,15 +155,12 @@ Pages
   </a>
   <span class="text">Via parse_transform</span>
 </h3>
-<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="9500774973-1">(</span><span class="ss">math</span><span class="p" data-group-id="9500774973-1">)</span><span class="p">.</span><span class="w">
-</span><span class="p">-</span><span class="na">moduledoc</span><span class="w"> </span><span class="s">&quot;&quot;&quot;
-A module for basic arithmetic.
-&quot;&quot;&quot;</span><span class="p">.</span><span class="w">
+<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="1314097857-1">(</span><span class="ss">math</span><span class="p" data-group-id="1314097857-1">)</span><span class="p">.</span><span class="w">
 </span><span class="w">
-</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="9500774973-2">(</span><span class="p" data-group-id="9500774973-3">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="9500774973-3">]</span><span class="p" data-group-id="9500774973-2">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="1314097857-2">(</span><span class="p" data-group-id="1314097857-3">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="1314097857-3">]</span><span class="p" data-group-id="1314097857-2">)</span><span class="p">.</span><span class="w">
 </span><span class="w">
-</span><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="9500774973-4">(</span><span class="n">TEST</span><span class="p" data-group-id="9500774973-4">)</span><span class="p">.</span><span class="w">
-</span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="9500774973-5">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="9500774973-5">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="1314097857-4">(</span><span class="n">TEST</span><span class="p" data-group-id="1314097857-4">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="1314097857-5">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="1314097857-5">)</span><span class="p">.</span><span class="w">
 </span><span class="c1">% -doctest &lt;see the options section&gt;.</span><span class="w">
 </span><span class="p">-</span><span class="na">endif</span><span class="p">.</span><span class="w">
 </span><span class="w">
@@ -181,27 +178,32 @@ _Example_:
 2
 ```
 &quot;&quot;&quot;</span><span class="p">.</span><span class="w">
-</span><span class="nf">add</span><span class="p" data-group-id="9500774973-6">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p" data-group-id="9500774973-6">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
-    </span><span class="n">A</span><span class="o">+</span><span class="n">B</span><span class="p">.</span></code></pre><p>This will produce the file <code class="inline">&lt;project_cwd&gt;/test/math_DOCTEST.erl</code> with
-the following tests:</p><pre><code class="makeup erlang" translate="no"><span class="c1">% &lt;name&gt;_&lt;arity&gt;_test</span><span class="w">
-</span><span class="nf">add_2_test</span><span class="p" data-group-id="1178665727-1">(</span><span class="p" data-group-id="1178665727-1">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
-    </span><span class="p" data-group-id="1178665727-2">[</span><span class="w">
-        </span><span class="o">?</span><span class="nf">assertEqual</span><span class="p" data-group-id="1178665727-3">(</span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="1178665727-4">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1178665727-4">)</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1178665727-3">)</span><span class="p">,</span><span class="w">
-        </span><span class="o">?</span><span class="nf">assertEqual</span><span class="p" data-group-id="1178665727-5">(</span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="1178665727-6">(</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p" data-group-id="1178665727-6">)</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p" data-group-id="1178665727-5">)</span><span class="w">
-    </span><span class="p" data-group-id="1178665727-2">]</span><span class="p">.</span></code></pre><p>Note that the code is defined like the Erlang shell, starting with <code class="inline">1&amp;gt</code>
-and continues in multiple lines with <code class="inline">..</code>. The result is a value without
-starting with those shell symbols.</p><h3 id="options" class="section-heading">
+</span><span class="nf">add</span><span class="p" data-group-id="1314097857-6">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p" data-group-id="1314097857-6">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="n">A</span><span class="o">+</span><span class="n">B</span><span class="p">.</span></code></pre><blockquote><p>Note that the code is defined like the Erlang shell, starting with <code class="inline">N&gt;</code>, where <code class="inline">N</code> is a number, and continues in multiple lines with <code class="inline">..</code>. The result is a value without starting with those shell symbols.</p></blockquote><p>Now, by running <code class="inline">rebar3 eunit</code>:</p><pre><code class="makeup shell" translate="no"><span class="">Finished in 0.018 seconds
+</span><span class="">2 tests, 0 failures
+</span></code></pre><p>By changing the first test to:</p><pre><code class="makeup erlang" translate="no"><span class="gp unselectable">1&gt; </span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="1832152284-1">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="1832152284-1">)</span><span class="p">.</span><span class="w">
+</span><span class="mi">1</span></code></pre><p>And running <code class="inline">rebar3 eunit</code> again:</p><pre><code class="makeup shell" translate="no"><span class="">Failures:
+</span><span class="">
+</span><span class="">  1) doctest_parse_transform:-parse/4-fun-0-/0:26
+</span><span class="">     Failure/Error: ?assertEqual(1, math:add(1, 1))
+</span><span class="">       expected: 1
+</span><span class="">            got: 2
+</span><span class="">     %% eunit_proc.erl:583:in `eunit_proc:run_group/2`
+</span><span class="">     Output:
+</span><span class="">     Output:
+</span><span class="">
+</span><span class="">Finished in 0.010 seconds
+</span><span class="">2 tests, 1 failures
+</span></code></pre><h3 id="options" class="section-heading">
   <a href="#options" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
   <span class="text">Options</span>
 </h3>
-<p>Options are defined via the <code class="inline">-doctest</code> attribute and can be defined multiple times.</p><h4>Available options</h4><ul><li><code class="inline">boolean()</code>: enable or disable tests.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">true</span><span class="p">.</span></code></pre></li><li><code class="inline">atom()</code>: define the test module name.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">math_DOCTEST</span><span class="p">.</span></code></pre></li><li><p><code class="inline">proplists:proplist()</code> | <code class="inline">all</code>: define the functions to be tested.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="2763195862-1">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="2763195862-1">]</span><span class="p">.</span></code></pre></li><li><p><code class="inline">string()</code> | <code class="inline">{abs, string()}</code> | <code class="inline">{cwd, string()}</code>: define the test file location.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="6177650065-1">{</span><span class="nb">abs</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/tmp/doctests&quot;</span><span class="p" data-group-id="6177650065-1">}</span><span class="p">.</span></code></pre></li><li><code class="inline">map()</code>: define all or partial options.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="9246357566-1">#{</span><span class="w">
+<p>Options are defined via the <code class="inline">-doctest</code> attribute and can be defined multiple times.</p><h4>Available options</h4><ul><li><code class="inline">boolean()</code>: enable or disable tests.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">true</span><span class="p">.</span></code></pre></li><li><p><code class="inline">[{atom(), arity()}]</code> | <code class="inline">all</code>: define the functions to be tested.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="5576035779-1">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="5576035779-1">]</span><span class="p">.</span></code></pre></li><li><code class="inline">map()</code>: define all or partial options.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="6515514193-1">#{</span><span class="w">
     </span><span class="ss">enabled</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">true</span><span class="p">,</span><span class="w">
-    </span><span class="ss">module</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">math_DOCTEST</span><span class="p">,</span><span class="w">
-    </span><span class="ss">funs</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="9246357566-2">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="9246357566-2">]</span><span class="p">,</span><span class="w">
-    </span><span class="ss">location</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="9246357566-3">{</span><span class="nb">abs</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/tmp/doctests&quot;</span><span class="p" data-group-id="9246357566-3">}</span><span class="w">
-</span><span class="p" data-group-id="9246357566-1">}</span><span class="p">.</span></code></pre></li></ul><h3 id="important" class="section-heading">
+    </span><span class="ss">funs</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="6515514193-2">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="6515514193-2">]</span><span class="w">
+</span><span class="p" data-group-id="6515514193-1">}</span><span class="p">.</span></code></pre></li></ul><h3 id="important" class="section-heading">
   <a href="#important" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -213,8 +215,7 @@ starting with those shell symbols.</p><h3 id="options" class="section-heading">
   </a>
   <span class="text">TODO</span>
 </h2>
-<ul><li>[ ] All kinds of tests;</li><li>[ ] Ability to test modules via function and not only via <code class="inline">parse_transform</code>;</li><li>[ ] Maybe add a mechanism to test non-exported functions, but probably this
-makes no sense;</li><li>[ ] Test and fix issues on umbrella applications;</li><li>[ ] Improve docs;</li><li>[ ] Implement <code class="inline">-moduledoc</code> tests in the same way that for <code class="inline">-doc</code>.</li></ul><h2 id="sponsors" class="section-heading">
+<ul><li>[ ] More tests;</li><li>[ ] Ability to test modules via function and not only via <code class="inline">parse_transform</code>;</li><li>[ ] Maybe add a mechanism to test non-exported functions, but probably this makes no sense;</li><li>[ ] Improve docs;</li><li>[ ] Implement <code class="inline">-moduledoc</code> tests in the same way that for <code class="inline">-doc</code>.</li></ul><h2 id="sponsors" class="section-heading">
   <a href="#sponsors" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -270,11 +271,11 @@ License
         <p>
 
             <span class="line">
-              <a href="https://hex.pm/packages/doctest/0.1.0" class="footer-hex-package">Hex Package</a>
+              <a href="https://hex.pm/packages/doctest/0.2.0" class="footer-hex-package">Hex Package</a>
 
-              <a href="https://preview.hex.pm/preview/doctest/0.1.0">Hex Preview</a>
+              <a href="https://preview.hex.pm/preview/doctest/0.2.0">Hex Preview</a>
 
-                (<a href="https://preview.hex.pm/preview/doctest/0.1.0/show/README.md">current file</a>)
+                (<a href="https://preview.hex.pm/preview/doctest/0.2.0/show/README.md">current file</a>)
 
             </span>
 
