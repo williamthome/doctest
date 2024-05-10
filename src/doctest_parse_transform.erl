@@ -42,15 +42,12 @@ Just plug the header on your module:
 parse_transform(Forms, _Opt) ->
     File = file(Forms),
     Docs = docs(doctest(doctest_attrs(Forms), File), doc_attrs(Forms)),
-    run(tests(File, Forms, Docs)),
+    doctest:run(tests(File, Forms, Docs)),
 	Forms.
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
-
-run(Tests) ->
-    eunit:test(Tests, [no_tty, {report, {eunit_progress, [colored]}}]).
 
 docs(Doctest, AllDocs) ->
     case Doctest#doctest.funs of
@@ -81,98 +78,18 @@ parse_to_doctest([], _SrcFile, #doctest{} = DT) ->
     DT.
 
 tests(File, Forms, Docs) ->
-    maps:fold(fun(Fun, Doc, Acc) ->
-        case capture(Doc) of
-            {match, Captured} ->
-                [parse(File, Forms, Fun, rev_normalize(join(split(Captured)), [])) | Acc];
-            nomatch ->
+    maps:fold(fun({F, A, Ln}, Md, Acc) ->
+        case doctest:code_block(Md) of
+            {ok, CodeBlock} ->
+                {ok, M, Bin} = compile:forms(Forms, [
+                    {i, "eunit/include/eunit.hrl"}
+                ]),
+                {module, M} = code:load_binary(M, File, Bin),
+                [doctest:parse({M, F, A}, Ln, doctest:chunk(CodeBlock)) | Acc];
+            none ->
                 Acc
         end
     end, [], Docs).
-
-capture(Doc) ->
-    case re:run(
-        Doc,
-        "(?ms)^(```[`]*)erlang\\s*\\n(.*?)(?:\\n^(\\1)(\\s+|\\n|$))",
-        [global, {capture, all_but_first, binary}]
-    ) of
-        {match, [[_, Captured, _, _]]} ->
-            {match, Captured};
-        nomatch ->
-            nomatch
-    end.
-
-split(Captured) ->
-    binary:split(Captured, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
-
-join(Parts) ->
-    Opts = [{capture, all_but_first, binary}],
-    lists:foldl(fun(Part, Acc) ->
-        case re:run(Part, <<"^[0-9]+>\\s+(.*?)\\.*$">>, Opts) of
-            {match, [Left]} ->
-                [{left, Left} | Acc];
-            nomatch ->
-                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\.*$">>, Opts) of
-                    {match, [More]} ->
-                        [{more, More} | Acc];
-                    nomatch ->
-                        [{right, Part} | Acc]
-                end
-        end
-    end, [], Parts).
-
-% TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
-%       1> ok.
-%       2> ok.
-%       And this should be wrong:
-%       9> error.
-%       8> error.
-rev_normalize([{right, R}, {more, M}, {left, L} | T], Acc) ->
-    rev_normalize(T, [{<<L/binary, $\s, M/binary>>, R} | Acc]);
-rev_normalize([{right, R}, {more, MR}, {more, ML} | T], Acc) ->
-    rev_normalize([{right, R}, {more, <<ML/binary, $\s, MR/binary>>} | T], Acc);
-rev_normalize([{right, R}, {left, L} | T], Acc) ->
-    rev_normalize(T, [{L, R} | Acc]);
-rev_normalize([], Acc) ->
-    Acc;
-% Code block is not a test, e.g:
-% foo() ->
-%     bar.
-rev_normalize(_, _) ->
-    [].
-
-parse(File, Forms, {Fun, Arity, Line}, Asserts) ->
-    {ok, Mod, Bin} = compile:forms(Forms, [
-        {i, "eunit/include/eunit.hrl"}
-    ]),
-    {module, Mod} = code:load_binary(Mod, File, Bin),
-    element(2, lists:foldl(fun({Left, Right}, {Bindings, Acc}) ->
-        {LeftValue, NewBindings} = eval(Left, Bindings),
-        {RightValue, []} = eval(Right, []),
-        Test = {Line, fun() ->
-            case LeftValue =:= RightValue of
-                true ->
-                    ok;
-                false ->
-                    erlang:error({assertEqual, [
-                        {module, Mod},
-                        {line, Line},
-                        {function, Fun},
-                        {arity, Arity},
-                        {expression, Left},
-                        {expected, RightValue},
-                        {value, LeftValue}
-                    ]})
-            end
-        end},
-        {NewBindings, [Test | Acc]}
-    end, {[], []}, Asserts)).
-
-eval(Bin, Bindings) ->
-    {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
-    {ok, Exprs} = erl_parse:parse_exprs(Tokens),
-    {value, Value, NewBindings} = erl_eval:exprs(Exprs, Bindings),
-    {Value, NewBindings}.
 
 file(Forms) ->
     [File, _Loc] = hd(attributes(file, Forms)),
