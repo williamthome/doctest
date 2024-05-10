@@ -12,7 +12,7 @@ OTP >= 27.
 % rebar.config
 {profiles, [
     {test, [
-        {deps, [{doctest, "0.1.0"}]}
+        {deps, [{doctest, "0.2.0"}]}
     ]}
 ]}.
 ```
