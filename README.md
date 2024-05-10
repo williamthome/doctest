@@ -19,7 +19,7 @@ OTP >= 27.
 
 ## Usage
 
-Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl).
+Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl), but only exported functions are tested.
 
 ### Testing via doctest:module/1,2 function
 
@@ -64,6 +64,12 @@ Failures:
 Finished in 0.013 seconds
 2 tests, 1 failures
 ```
+
+#### Options
+
+Options can be provided when using the `doctest:module/2` function. The available options are:
+- `moduledoc` :: `boolean()`: enable or disable `-moduledoc` test
+- `funs` :: `boolean()` | `[{atom(), arity()}]`: enable or disable `-doc` tests or define the functions to be tested
 
 ### Testing via doctest header
 
@@ -126,25 +132,22 @@ Finished in 0.010 seconds
 2 tests, 1 failures
 ```
 
-### Options
+#### Options
 
-Options are defined via the `-doctest` attribute and can be defined multiple times.
-
-#### Available options
-
-- `boolean()` | `{enabled, boolean()}`: enable or disable the test running.
+Options are defined via the `-doctest` attribute and can be defined multiple times. The available options are:
+- `boolean()` | `{enabled, boolean()}`: enable or disable the test running, e.g:
   ```erlang
   -doctest true.
   ```
-- `{moduledoc, boolean()}`: enable or disable `-moduledoc` test.
+- `{moduledoc, boolean()}`: enable or disable `-moduledoc` test, e.g:
   ```erlang
   -doctest {moduledoc, true}.
   ```
-- `[{atom(), arity()}]` | `{funs, [{atom(), arity()}] | boolean()}`: define functions to be tested.
+- `[{atom(), arity()}]` | `{funs, [{atom(), arity()}] | boolean()}`: enable or disable `-doc` tests or define the functions to be tested, e.g:
   ```erlang
   -doctest [add/2].
   ```
-- `map()`: define all or partial options.
+- `map()`: define all or partial options, e.g:
   ```erlang
   -doctest #{
       enabled => true,
@@ -152,10 +155,6 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
       funs => [add/2]
   }.
   ```
-
-### Important
-
-Currently, only exported functions can be tested.
 
 ## TODO
 

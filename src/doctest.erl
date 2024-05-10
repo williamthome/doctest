@@ -36,12 +36,23 @@ Provides `module/1` and `module/2` to test doc attributes.
 -include("doctest_otp_check.hrl").
 -include_lib("kernel/include/eep48.hrl").
 
+-type options() :: #{
+    moduledoc => boolean(),
+    funs => boolean() | [{atom(), arity()}]
+}.
+-type test_result() :: ok | error | {error, term()}.
+
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
+-doc #{ equiv => module(Mod, #{}) }.
+-spec module(module()) -> test_result().
+
 module(Mod) ->
     module(Mod, #{}).
+
+-spec module(module(), options()) -> test_result().
 
 module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
     case code:get_doc(Mod) of
