@@ -154,10 +154,10 @@ Currently, only exported functions can be tested.
 
 ## TODO
 
-- [ ] Add option to skip `moduledoc` test;
-- [ ] Create `doctest:module/2`, where options are the second argument;
-- [ ] More tests;
-- [ ] Improve docs;
+- [ ] Add option to skip `moduledoc` test
+- [ ] Create `doctest:module/2`, where [options](#options) is the second argument and of type `map()`
+- [ ] More tests
+- [ ] Improve docs
 
 ## Sponsors
 
