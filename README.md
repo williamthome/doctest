@@ -19,9 +19,9 @@ OTP >= 27.
 
 ## Usage
 
-You can run tests via `shell` or via `parse_transform`.
+Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl).
 
-### shell
+### Testing via doctest:module/1,2 function
 
 Take this module:
 ````erlang
@@ -65,7 +65,7 @@ Finished in 0.013 seconds
 2 tests, 1 failures
 ```
 
-### parse_transform
+### Testing via doctest header
 
 Take this module:
 ````erlang
@@ -132,11 +132,15 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
 
 #### Available options
 
-- `boolean()`: enable or disable tests.
+- `boolean()` | `{enabled, boolean()}`: enable or disable the test running.
   ```erlang
   -doctest true.
   ```
-- `[{atom(), arity()}]` | `all`: define the functions to be tested.
+- `{moduledoc, boolean()}`: enable or disable `-moduledoc` test.
+  ```erlang
+  -doctest {moduledoc, true}.
+  ```
+- `[{atom(), arity()}]` | `{funs, [{atom(), arity()}] | boolean()}`: define functions to be tested.
   ```erlang
   -doctest [add/2].
   ```
@@ -144,6 +148,7 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
   ```erlang
   -doctest #{
       enabled => true,
+      moduledoc => true,
       funs => [add/2]
   }.
   ```
@@ -154,9 +159,8 @@ Currently, only exported functions can be tested.
 
 ## TODO
 
-- [ ] Add option to skip `moduledoc` test
-- [ ] Create `doctest:module/2`, where [options](#options) is the second argument and of type `map()`
 - [ ] More tests
+- [ ] Specs
 - [ ] Improve docs
 
 ## Sponsors
