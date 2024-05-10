@@ -14,7 +14,9 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest).
--moduledoc false.
+-moduledoc """
+Provide `module/1` to test your -doc attributes.
+""".
 
 % API functions
 -export([module/1]).
