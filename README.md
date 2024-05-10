@@ -12,7 +12,7 @@ OTP >= 27.
 % rebar.config
 {profiles, [
     {test, [
-        {deps, [{doctest, "0.1.0"}]}
+        {deps, [{doctest, "0.2.0"}]}
     ]}
 ]}.
 ```
@@ -25,9 +25,6 @@ Take this module:
 
 ````erlang
 -module(math).
--moduledoc """
-A module for basic arithmetic.
-""".
 
 -export([add/2]).
 
@@ -54,20 +51,35 @@ add(A, B) ->
     A+B.
 ````
 
-This will produce the file `<project_cwd>/test/math_DOCTEST.erl` with
-the following tests:
-```erlang
-% <name>_<arity>_test
-add_2_test() ->
-    [
-        ?assertEqual(math:add(0, 1), 1),
-        ?assertEqual(math:add( 1, 1 ), 2)
-    ].
+> Note that the code is defined like the Erlang shell, starting with `N> `, where `N` is a number, and continues in multiple lines with `.. `. The result is a value without starting with those shell symbols.
+
+Now, by running `rebar3 eunit`:
+```shell
+Finished in 0.018 seconds
+2 tests, 0 failures
 ```
 
-Note that the code is defined like the Erlang shell, starting with `1&gt `
-and continues in multiple lines with `.. `. The result is a value without
-starting with those shell symbols.
+By changing the first test to:
+```erlang
+1> math:add(1, 1).
+1
+```
+
+And running `rebar3 eunit` again:
+```shell
+Failures:
+
+  1) doctest_parse_transform:-parse/4-fun-0-/0:26
+     Failure/Error: ?assertEqual(1, math:add(1, 1))
+       expected: 1
+            got: 2
+     %% eunit_proc.erl:583:in `eunit_proc:run_group/2`
+     Output:
+     Output:
+
+Finished in 0.010 seconds
+2 tests, 1 failures
+```
 
 ### Options
 
@@ -79,25 +91,15 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
   ```erlang
   -doctest true.
   ```
-- `atom()`: define the test module name.
-  ```erlang
-  -doctest math_DOCTEST.
-  ```
-- `proplists:proplist()` | `all`: define the functions to be tested.
+- `[{atom(), arity()}]` | `all`: define the functions to be tested.
   ```erlang
   -doctest [add/2].
-  ```
-- `string()` | `{abs, string()}` | `{cwd, string()}`: define the test file location.
-  ```erlang
-  -doctest {abs, "/tmp/doctests"}.
   ```
 - `map()`: define all or partial options.
   ```erlang
   -doctest #{
       enabled => true,
-      module => math_DOCTEST,
-      funs => [add/2],
-      location => {abs, "/tmp/doctests"}
+      funs => [add/2]
   }.
   ```
 
@@ -107,11 +109,9 @@ Currently, only exported functions can be tested.
 
 ## TODO
 
-- [ ] All kinds of tests;
+- [ ] More tests;
 - [ ] Ability to test modules via function and not only via `parse_transform`;
-- [ ] Maybe add a mechanism to test non-exported functions, but probably this
-makes no sense;
-- [ ] Test and fix issues on umbrella applications;
+- [ ] Maybe add a mechanism to test non-exported functions, but probably this makes no sense;
 - [ ] Improve docs;
 - [ ] Implement `-moduledoc` tests in the same way that for `-doc`.
 

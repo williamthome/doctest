@@ -1,8 +1,8 @@
 {application, doctest, [
     {description, "An OTP library to test -doc attributes"},
-    {vsn, "0.1.0"},
+    {vsn, "0.2.0"},
     {registered, []},
-    {applications, [kernel, stdlib, syntax_tools]},
+    {applications, [kernel, stdlib, syntax_tools, compiler, eunit]},
     {env, []},
     {modules, []},
     {licenses, ["Apache-2.0"]},
