@@ -12,16 +12,16 @@ OTP >= 27.
 % rebar.config
 {profiles, [
     {test, [
-        {deps, [{doctest, "0.4.0"}]}
+        {deps, [{doctest, "0.5.0"}]}
     ]}
 ]}.
 ```
 
 ## Usage
 
-You can run tests via `shell` or via `parse_transform`.
+Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl), but only exported functions are tested.
 
-### shell
+### Testing via doctest:module/1,2 function
 
 Take this module:
 ````erlang
@@ -65,7 +65,13 @@ Finished in 0.013 seconds
 2 tests, 1 failures
 ```
 
-### parse_transform
+#### Options
+
+Options can be provided when using the `doctest:module/2` function. The available options are:
+- `moduledoc` :: `boolean()`: enable or disable `-moduledoc` test
+- `funs` :: `boolean()` | `[{atom(), arity()}]`: enable or disable `-doc` tests or define the functions to be tested
+
+### Testing via doctest header
 
 Take this module:
 ````erlang
@@ -126,37 +132,34 @@ Finished in 0.010 seconds
 2 tests, 1 failures
 ```
 
-### Options
+#### Options
 
-Options are defined via the `-doctest` attribute and can be defined multiple times.
-
-#### Available options
-
-- `boolean()`: enable or disable tests.
+Options are defined via the `-doctest` attribute and can be defined multiple times. The available options are:
+- `boolean()` | `{enabled, boolean()}`: enable or disable the test running, e.g:
   ```erlang
   -doctest true.
   ```
-- `[{atom(), arity()}]` | `all`: define the functions to be tested.
+- `{moduledoc, boolean()}`: enable or disable `-moduledoc` test, e.g:
+  ```erlang
+  -doctest {moduledoc, true}.
+  ```
+- `[{atom(), arity()}]` | `{funs, [{atom(), arity()}] | boolean()}`: enable or disable `-doc` tests or define the functions to be tested, e.g:
   ```erlang
   -doctest [add/2].
   ```
-- `map()`: define all or partial options.
+- `map()`: define all or partial options, e.g:
   ```erlang
   -doctest #{
       enabled => true,
+      moduledoc => true,
       funs => [add/2]
   }.
   ```
 
-### Important
-
-Currently, only exported functions can be tested.
-
 ## TODO
 
-- [ ] Add option to skip `moduledoc` test
-- [ ] Create `doctest:module/2`, where [options](#options) is the second argument and of type `map()`
 - [ ] More tests
+- [ ] Specs
 - [ ] Improve docs
 
 ## Sponsors

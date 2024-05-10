@@ -15,29 +15,56 @@
 %%%---------------------------------------------------------------------
 -module(doctest).
 -moduledoc """
-Provide `module/1` to test your -doc attributes.
+Provides `module/1` and `module/2` to test doc attributes.
 """.
 -moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
--export([module/1]).
+-export([module/1, module/2]).
 
 % Support functions
--export([code_block/1, chunk/1, parse_mod/3, parse_fun/3, parse/4, run/1]).
+-export([ code_block/1
+        , chunk/1
+        , parse_mod/3
+        , parse_fun/3
+        , parse/4
+        , should_test_function/2
+        , run/1
+        ]).
 
 % Check OTP version >= 27.
 -include("doctest_otp_check.hrl").
 -include_lib("kernel/include/eep48.hrl").
 
+-type options() :: #{
+    moduledoc => boolean(),
+    funs => boolean() | [{atom(), arity()}]
+}.
+-type test_result() :: ok | error | {error, term()}.
+
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
+-doc #{ equiv => module(Mod, #{}) }.
+-spec module(module()) -> test_result().
+
 module(Mod) ->
+    module(Mod, #{}).
+
+-spec module(module(), options()) -> test_result().
+
+module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
-            Tests = moduledoc_tests(Mod, Anno, Lang) ++ doc_tests(Mod, Docs),
-            run(Tests);
+            ModTests = case maps:get(moduledoc, Opts, true) of
+                true ->
+                    moduledoc_tests(Mod, Anno, Lang);
+                false ->
+                    []
+            end,
+            FunsTests = doc_tests(Mod, Docs, maps:get(funs, Opts, true)),
+            run(ModTests ++ FunsTests);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -92,6 +119,13 @@ parse(M, Ln, Chunk, ErrInfo) when
         {NewBindings, [Test | Acc]}
     end, {[], []}, Chunk)).
 
+should_test_function(true, _Fun) ->
+    true;
+should_test_function(false, _Fun) ->
+    false;
+should_test_function(Funs, Fun) when is_list(Funs) ->
+    lists:member(Fun, Funs).
+
 run(Tests) ->
     eunit:test(Tests, [no_tty, {report, {eunit_progress, [colored]}}]).
 
@@ -107,16 +141,25 @@ moduledoc_tests(Mod, Anno, Lang) ->
             []
     end.
 
-doc_tests(Mod, Docs) ->
+doc_tests(Mod, Docs, Funs) ->
     lists:filtermap(fun({Type, Anno, _Sign, Lang, _Meta}) ->
         case Type of
             {function, Fun, Arity} ->
-                % TODO: Check how to use shell_docs_markdown:parse_md/1.
-                %       It can simplify the capture of the code blocks.
-                case code_block(unwrap_md(Lang)) of
-                    {ok, CodeBlock} ->
-                        {true, parse_fun({Mod, Fun, Arity}, erl_anno:line(Anno), chunk(CodeBlock))};
-                    none ->
+                case should_test_function(Funs, {Fun, Arity}) of
+                    true ->
+                        % TODO: Check how to use shell_docs_markdown:parse_md/1.
+                        %       It can simplify the capture of the code blocks.
+                        case code_block(unwrap_md(Lang)) of
+                            {ok, CodeBlock} ->
+                                {true, parse_fun(
+                                    {Mod, Fun, Arity},
+                                    erl_anno:line(Anno),
+                                    chunk(CodeBlock)
+                                )};
+                            none ->
+                                false
+                        end;
+                    false ->
                         false
                 end;
             _ ->

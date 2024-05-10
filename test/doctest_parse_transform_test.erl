@@ -24,11 +24,11 @@ true
 """.
 -moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
--export([sum/2, mult/2, nodoc/0, nocodeblock/0, concat/2]).
+-export([sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2]).
 
 -ifdef(TEST).
 -include("doctest.hrl").
--doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, concat/2].
+-doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2].
 -endif.
 
 -doc """
