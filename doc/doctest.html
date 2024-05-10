@@ -8,7 +8,7 @@
     <meta name="project" content="doctest v0.3.0">
 
 
-    <title>doctest_parse_transform — doctest v0.3.0</title>
+    <title>doctest — doctest v0.3.0</title>
     <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
@@ -117,21 +117,19 @@ Pages
 
 <h1>
 
-    <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest_parse_transform.erl#L16" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L16" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">doctest_parse_transform</span> 
+  <span translate="no">doctest</span> 
   <small class="app-vsn" translate="no">(doctest v0.3.0)</small>
 
 </h1>
 
 
   <section id="moduledoc">
-<p>Generate tests for -doc attributes via parse transform.</p><p>Just plug the header on your module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="5559879008-1">(</span><span class="n">TEST</span><span class="p" data-group-id="5559879008-1">)</span><span class="p">.</span><span class="w">
-</span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="5559879008-2">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="5559879008-2">)</span><span class="p">.</span><span class="w">
-</span><span class="p">-</span><span class="na">endif</span><span class="p">.</span></code></pre>
+<p>Provide <a href="#module/1"><code class="inline">module/1</code></a> to test your -doc attributes.</p>
   </section>
 
 
@@ -149,7 +147,39 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#parse_transform/2" translate="no">parse_transform(Forms, Opt)</a>
+        <a href="#chunk/1" translate="no">chunk(CodeBlock)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#code_block/1" translate="no">code_block(Md)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#module/1" translate="no">module(M)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#parse/3" translate="no">parse/3</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#run/1" translate="no">run(Tests)</a>
 
       </div>
 
@@ -168,16 +198,104 @@ Pages
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="parse_transform/2">
+<section class="detail" id="chunk/1">
 
   <div class="detail-header">
-    <a href="#parse_transform/2" class="detail-link" title="Link to this function">
+    <a href="#chunk/1" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">parse_transform(Forms, Opt)</h1>
+    <h1 class="signature" translate="no">chunk(CodeBlock)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest_parse_transform.erl#L42" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L74" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="code_block/1">
+
+  <div class="detail-header">
+    <a href="#code_block/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">code_block(Md)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L62" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="module/1">
+
+  <div class="detail-header">
+    <a href="#module/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">module(M)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L35" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="parse/3">
+
+  <div class="detail-header">
+    <a href="#parse/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">parse/3</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L77" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="run/1">
+
+  <div class="detail-header">
+    <a href="#run/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">run(Tests)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L100" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
