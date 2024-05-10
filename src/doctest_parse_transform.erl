@@ -51,10 +51,10 @@ parse_transform(Forms, _Opt) ->
 %%% Internal functions
 %%%=====================================================================
 
-docs(#doctest{moduledoc = ModDoc, funs = Funs}, AllDocs) ->
+docs(#doctest{moduledoc = ShouldTestModDoc, funs = Funs}, AllDocs) ->
     lists:filter(fun
         ({moduledoc, _Doc}) ->
-            ModDoc;
+            ShouldTestModDoc;
         ({{doc, {function, {F, A, _Ln}}}, _Doc}) ->
             doctest:should_test_function(Funs, {F, A})
     end, AllDocs).
