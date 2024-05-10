@@ -12,17 +12,54 @@ OTP >= 27.
 % rebar.config
 {profiles, [
     {test, [
-        {deps, [{doctest, "0.2.0"}]}
+        {deps, [{doctest, "0.3.0"}]}
     ]}
 ]}.
 ```
 
 ## Usage
 
-### Via parse_transform
+You can run tests via `shell` or via `parse_transform`.
+
+### shell
 
 Take this module:
+````erlang
+-module(foo).
 
+-export([foo/0]).
+
+-doc """
+```erlang
+1> foo:foo().
+foo
+```
+""".
+foo() ->
+    bar.
+````
+
+Running it via shell:
+```erlang
+1> doctest:module(foo).
+F
+Failures:
+
+  1) doctest:-parse/3-fun-0-/0:5
+     Failure/Error: ?assertEqual(foo, foo:foo())
+       expected: foo
+            got: bar
+     %% eunit_proc.erl:583:in `eunit_proc:run_group/2`
+     Output:
+     Output:
+
+Finished in 0.008 seconds
+1 tests, 1 failures
+```
+
+### parse_transform
+
+Take this module:
 ````erlang
 -module(math).
 
@@ -110,8 +147,6 @@ Currently, only exported functions can be tested.
 ## TODO
 
 - [ ] More tests;
-- [ ] Ability to test modules via function and not only via `parse_transform`;
-- [ ] Maybe add a mechanism to test non-exported functions, but probably this makes no sense;
 - [ ] Improve docs;
 - [ ] Implement `-moduledoc` tests in the same way that for `-doc`.
 
