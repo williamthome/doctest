@@ -49,12 +49,17 @@ parse_transform(Forms, _Opt) ->
 %%% Internal functions
 %%%=====================================================================
 
-docs(Doctest, AllDocs) ->
-    case Doctest#doctest.funs of
+docs(DocTest, AllDocs) ->
+    case DocTest#doctest.funs of
         all ->
             AllDocs;
         Funs when is_list(Funs) ->
-            maps:with(Funs, AllDocs)
+            lists:filter(fun
+                ({moduledoc, _Doc}) ->
+                    true;
+                ({{doc, {function, {F, A, _Ln}}}, _Doc}) ->
+                    lists:member({F, A}, Funs)
+            end, AllDocs)
     end.
 
 doctest(Attrs, SrcFile) ->
@@ -63,50 +68,69 @@ doctest(Attrs, SrcFile) ->
         funs = all
     }).
 
-parse_to_doctest([Enabled|T], SrcFile, DT) when is_boolean(Enabled) ->
-    parse_to_doctest(T, SrcFile, DT#doctest{enabled = Enabled});
-parse_to_doctest([Funs|T], SrcFile, DT) when is_list(Funs) ->
-    parse_to_doctest(T, SrcFile, DT#doctest{funs = Funs});
-parse_to_doctest([all|T], SrcFile, DT) ->
-    parse_to_doctest(T, SrcFile, DT#doctest{funs = all});
-parse_to_doctest([Map|T], SrcFile, DT) when is_map(Map) ->
-    parse_to_doctest(T, SrcFile, DT#doctest{
-        enabled = maps:get(enabled, Map, DT#doctest.enabled),
-        funs = maps:get(funs, Map, DT#doctest.funs)
+parse_to_doctest([Enabled|T], SrcFile, DocTest) when is_boolean(Enabled) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{enabled = Enabled});
+parse_to_doctest([Funs|T], SrcFile, DocTest) when is_list(Funs) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{funs = Funs});
+parse_to_doctest([all|T], SrcFile, DocTest) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{funs = all});
+parse_to_doctest([Map|T], SrcFile, DocTest) when is_map(Map) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{
+        enabled = maps:get(enabled, Map, DocTest#doctest.enabled),
+        funs = maps:get(funs, Map, DocTest#doctest.funs)
     });
-parse_to_doctest([], _SrcFile, #doctest{} = DT) ->
-    DT.
+parse_to_doctest([], _SrcFile, #doctest{} = DocTest) ->
+    DocTest.
 
 tests(File, Forms, Docs) ->
-    maps:fold(fun({F, A, Ln}, Md, Acc) ->
+    lists:foldl(fun({Kind, {MdLn, Md}}, Acc) ->
         case doctest:code_block(Md) of
             {ok, CodeBlock} ->
                 {ok, M, Bin} = compile:forms(Forms, [
                     {i, "eunit/include/eunit.hrl"}
                 ]),
                 {module, M} = code:load_binary(M, File, Bin),
-                [doctest:parse({M, F, A}, Ln, doctest:chunk(CodeBlock)) | Acc];
+                Chunk = doctest:chunk(CodeBlock),
+                Tests = case Kind of
+                    moduledoc ->
+                        doctest:parse_mod(M, MdLn, Chunk);
+                    {doc, {function, {F, A, Ln}}} ->
+                        doctest:parse_fun({M, F, A}, Ln, Chunk)
+                end,
+                [Tests | Acc];
             none ->
                 Acc
         end
     end, [], Docs).
 
 file(Forms) ->
-    [File, _Loc] = hd(attributes(file, Forms)),
+    [{_Ln, File}, _Loc] = hd(attributes(file, Forms)),
     File.
 
 doctest_attrs(Forms) ->
-    attributes(doctest, Forms).
+    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
 
 doc_attrs(Forms) ->
     do_doc_attrs(filtermap_forms(
         fun(Type) -> lists:member(Type, [attribute, function]) end,
         fun
             ({attribute, Attr}) ->
-                case attribute_name(Attr) =:= doc of
-                    true ->
-                        {true, {doc, normalize_attribute(Attr)}};
-                    false ->
+                case attribute_name(Attr) of
+                    moduledoc ->
+                        case normalize_attribute(Attr) of
+                            {Ln, Md} when is_list(Md); is_binary(Md) ->
+                                {true, {moduledoc, {Ln, Md}}};
+                            _ ->
+                                false
+                        end;
+                    doc ->
+                        case normalize_attribute(Attr) of
+                            {Ln, Md} when is_list(Md); is_binary(Md) ->
+                                {true, {doc, {Ln, Md}}};
+                            _ ->
+                                false
+                        end;
+                    _ ->
                         false
                 end;
             ({function, Fun}) ->
@@ -115,12 +139,14 @@ doc_attrs(Forms) ->
         Forms
     ), []).
 
-do_doc_attrs([{doc, Doc},{function, Fun}|T], Acc) ->
-    do_doc_attrs(T, [{Fun, Doc} | Acc]);
-do_doc_attrs([{function, _}|T], Acc) ->
+do_doc_attrs([{moduledoc, Doc} | T], Acc) ->
+    do_doc_attrs(T, [{moduledoc, Doc} | Acc]);
+do_doc_attrs([{doc, Doc},{function, Fun} | T], Acc) ->
+    do_doc_attrs(T, [{{doc, {function, Fun}}, Doc} | Acc]);
+do_doc_attrs([{function, _} | T], Acc) ->
     do_doc_attrs(T, Acc);
 do_doc_attrs([], Acc) ->
-    maps:from_list(Acc).
+    Acc.
 
 attributes(Name, Forms) ->
     filtermap_forms(
@@ -155,7 +181,7 @@ normalize_attribute(Attr) ->
     Exprs = erl_syntax:revert_forms(erl_syntax:attribute_arguments(Attr)),
     case lists:map(fun(Expr) ->
         {value, Value, []} = erl_eval:expr(Expr, []),
-        Value
+        {form_ln(Expr), Value}
     end, Exprs) of
         [H] ->
             H;
@@ -167,5 +193,8 @@ normalize_function(Fun) ->
     {
         erl_syntax:atom_value(erl_syntax:function_name(Fun)),
         erl_syntax:function_arity(Fun),
-        erl_anno:line(erl_syntax:get_pos(Fun))
+        form_ln(Fun)
     }.
+
+form_ln(Form) ->
+    erl_anno:line(erl_syntax:get_pos(Form)).

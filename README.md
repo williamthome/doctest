@@ -1,6 +1,6 @@
 # doctest
 
-An OTP library to test `-doc` attributes.
+A library to test Erlang `-moduledoc` and `-doc` attributes.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ OTP >= 27.
 % rebar.config
 {profiles, [
     {test, [
-        {deps, [{doctest, "0.3.0"}]}
+        {deps, [{doctest, "0.4.0"}]}
     ]}
 ]}.
 ```
@@ -26,6 +26,14 @@ You can run tests via `shell` or via `parse_transform`.
 Take this module:
 ````erlang
 -module(foo).
+-moduledoc """
+Module doc tags can also be tested.
+
+```erlang
+1> foo:foo() =:= bar.
+true
+```
+""".
 
 -export([foo/0]).
 
@@ -42,10 +50,10 @@ foo() ->
 Running it via shell:
 ```erlang
 1> doctest:module(foo).
-F
+.F
 Failures:
 
-  1) doctest:-parse/3-fun-0-/0:5
+  1) doctest:-parse/4-fun-0-/0:13
      Failure/Error: ?assertEqual(foo, foo:foo())
        expected: foo
             got: bar
@@ -53,8 +61,8 @@ Failures:
      Output:
      Output:
 
-Finished in 0.008 seconds
-1 tests, 1 failures
+Finished in 0.013 seconds
+2 tests, 1 failures
 ```
 
 ### parse_transform
@@ -146,9 +154,10 @@ Currently, only exported functions can be tested.
 
 ## TODO
 
+- [ ] Add option to skip `moduledoc` test;
+- [ ] Create `doctest:module/2`, where options are the second argument;
 - [ ] More tests;
 - [ ] Improve docs;
-- [ ] Implement `-moduledoc` tests in the same way that for `-doc`.
 
 ## Sponsors
 

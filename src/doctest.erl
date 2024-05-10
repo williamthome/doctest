@@ -17,12 +17,13 @@
 -moduledoc """
 Provide `module/1` to test your -doc attributes.
 """.
+-moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
 -export([module/1]).
 
 % Support functions
--export([code_block/1, chunk/1, parse/3, run/1]).
+-export([code_block/1, chunk/1, parse_mod/3, parse_fun/3, parse/4, run/1]).
 
 % Check OTP version >= 27.
 -include("doctest_otp_check.hrl").
@@ -32,24 +33,10 @@ Provide `module/1` to test your -doc attributes.
 %%% API functions
 %%%=====================================================================
 
-module(M) ->
-    case code:get_doc(M) of
-        {ok, #docs_v1{docs = Docs}} ->
-            Tests = lists:filtermap(fun({Type, Anno, _Sign, #{<<"en">> := Md}, _Meta}) ->
-                case Type of
-                    {function, F, A} ->
-                        % TODO: Check how to use shell_docs_markdown:parse_md/1.
-                        %       It can simplify the capture of the code blocks.
-                        case code_block(Md) of
-                            {ok, CodeBlock} ->
-                                {true, parse({M, F, A}, erl_anno:line(Anno), chunk(CodeBlock))};
-                            none ->
-                                false
-                        end;
-                    _ ->
-                        false
-                end
-            end, Docs),
+module(Mod) ->
+    case code:get_doc(Mod) of
+        {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
+            Tests = moduledoc_tests(Mod, Anno, Lang) ++ doc_tests(Mod, Docs),
             run(Tests);
         {error, Reason} ->
             {error, Reason}
@@ -74,7 +61,17 @@ code_block(Md) ->
 chunk(CodeBlock) ->
     rev_normalize(join(split(CodeBlock)), []).
 
-parse({M, F, A}, Ln, Chunk) ->
+parse_mod(M, Ln, Chunk) ->
+    parse(M, Ln, Chunk, []).
+
+parse_fun({M, F, A}, Ln, Chunk) ->
+    parse(M, Ln, Chunk, [
+        {function, F},
+        {arity, A}
+    ]).
+
+parse(M, Ln, Chunk, ErrInfo) when
+    is_atom(M), is_integer(Ln), Ln > 0, is_list(ErrInfo) ->
     element(2, lists:foldl(fun({Left, Right}, {Bindings, Acc}) ->
         {LeftValue, NewBindings} = eval(Left, Bindings),
         {RightValue, []} = eval(Right, []),
@@ -83,11 +80,9 @@ parse({M, F, A}, Ln, Chunk) ->
                 true ->
                     ok;
                 false ->
-                    erlang:error({assertEqual, [
+                    erlang:error({assertEqual, ErrInfo ++ [
                         {module, M},
                         {line, Ln},
-                        {function, F},
-                        {arity, A},
                         {expression, Left},
                         {expected, RightValue},
                         {value, LeftValue}
@@ -103,6 +98,34 @@ run(Tests) ->
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
+
+moduledoc_tests(Mod, Anno, Lang) ->
+    case code_block(unwrap_md(Lang)) of
+        {ok, CodeBlock} ->
+            parse_mod(Mod, erl_anno:line(Anno), chunk(CodeBlock));
+        none ->
+            []
+    end.
+
+doc_tests(Mod, Docs) ->
+    lists:filtermap(fun({Type, Anno, _Sign, Lang, _Meta}) ->
+        case Type of
+            {function, Fun, Arity} ->
+                % TODO: Check how to use shell_docs_markdown:parse_md/1.
+                %       It can simplify the capture of the code blocks.
+                case code_block(unwrap_md(Lang)) of
+                    {ok, CodeBlock} ->
+                        {true, parse_fun({Mod, Fun, Arity}, erl_anno:line(Anno), chunk(CodeBlock))};
+                    none ->
+                        false
+                end;
+            _ ->
+                false
+        end
+    end, Docs).
+
+unwrap_md(#{<<"en">> := Md}) ->
+    Md.
 
 split(CodeBlock) ->
     binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).

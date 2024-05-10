@@ -1,6 +1,6 @@
 {application, doctest, [
-    {description, "An OTP library to test -doc attributes"},
-    {vsn, "0.3.0"},
+    {description, "A library to test Erlang doc attributes"},
+    {vsn, "0.4.0"},
     {registered, []},
     {applications, [kernel, stdlib, syntax_tools, compiler, eunit]},
     {env, []},
