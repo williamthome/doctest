@@ -5,16 +5,16 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.31.2">
-    <meta name="project" content="doctest v0.3.0">
+    <meta name="project" content="doctest v0.4.0">
 
 
-    <title>doctest — doctest v0.3.0</title>
+    <title>doctest — doctest v0.4.0</title>
     <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
     <script src="dist/handlebars.runtime-NWIB6V2M.js"></script>
     <script src="dist/handlebars.templates-A7S2WMC7.js"></script>
-    <script src="dist/sidebar_items-72CF07EC.js"></script>
+    <script src="dist/sidebar_items-4CECFED8.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -55,7 +55,7 @@
 doctest
         </a>
         <div class="sidebar-projectVersion" translate="no">
-          v0.3.0
+          v0.4.0
         </div>
       </div>
     </div>
@@ -117,13 +117,13 @@ Pages
 
 <h1>
 
-    <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L16" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L16" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
   <span translate="no">doctest</span> 
-  <small class="app-vsn" translate="no">(doctest v0.3.0)</small>
+  <small class="app-vsn" translate="no">(doctest v0.4.0)</small>
 
 </h1>
 
@@ -163,7 +163,7 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#module/1" translate="no">module(M)</a>
+        <a href="#module/1" translate="no">module(Mod)</a>
 
       </div>
 
@@ -171,7 +171,23 @@ Pages
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#parse/3" translate="no">parse/3</a>
+        <a href="#parse/4" translate="no">parse(M, Ln, Chunk, ErrInfo)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#parse_fun/3" translate="no">parse_fun/3</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#parse_mod/3" translate="no">parse_mod(M, Ln, Chunk)</a>
 
       </div>
 
@@ -207,7 +223,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">chunk(CodeBlock)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L74" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L61" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -229,7 +245,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">code_block(Md)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L62" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L49" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -249,9 +265,9 @@ Pages
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">module(M)</h1>
+    <h1 class="signature" translate="no">module(Mod)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L35" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L36" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -264,16 +280,60 @@ Pages
 
   </section>
 </section>
-<section class="detail" id="parse/3">
+<section class="detail" id="parse/4">
 
   <div class="detail-header">
-    <a href="#parse/3" class="detail-link" title="Link to this function">
+    <a href="#parse/4" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">parse/3</h1>
+    <h1 class="signature" translate="no">parse(M, Ln, Chunk, ErrInfo)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L77" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L73" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="parse_fun/3">
+
+  <div class="detail-header">
+    <a href="#parse_fun/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">parse_fun/3</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L67" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="parse_mod/3">
+
+  <div class="detail-header">
+    <a href="#parse_mod/3" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">parse_mod(M, Ln, Chunk)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L64" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -295,7 +355,7 @@ Pages
     </a>
     <h1 class="signature" translate="no">run(Tests)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.3.0/src/doctest.erl#L100" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.4.0/src/doctest.erl#L95" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -316,9 +376,9 @@ Pages
         <p>
 
             <span class="line">
-              <a href="https://hex.pm/packages/doctest/0.3.0" class="footer-hex-package">Hex Package</a>
+              <a href="https://hex.pm/packages/doctest/0.4.0" class="footer-hex-package">Hex Package</a>
 
-              <a href="https://preview.hex.pm/preview/doctest/0.3.0">Hex Preview</a>
+              <a href="https://preview.hex.pm/preview/doctest/0.4.0">Hex Preview</a>
 
             </span>
 
