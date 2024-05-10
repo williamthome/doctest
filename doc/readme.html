@@ -139,11 +139,11 @@ Pages
   <span class="text">Installation</span>
 </h2>
 <pre><code class="makeup erlang" translate="no"><span class="c1">% rebar.config</span><span class="w">
-</span><span class="p" data-group-id="5493600514-1">{</span><span class="ss">profiles</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5493600514-2">[</span><span class="w">
-    </span><span class="p" data-group-id="5493600514-3">{</span><span class="ss">test</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5493600514-4">[</span><span class="w">
-        </span><span class="p" data-group-id="5493600514-5">{</span><span class="ss">deps</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="5493600514-6">[</span><span class="p" data-group-id="5493600514-7">{</span><span class="ss">doctest</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span><span class="p" data-group-id="5493600514-7">}</span><span class="p" data-group-id="5493600514-6">]</span><span class="p" data-group-id="5493600514-5">}</span><span class="w">
-    </span><span class="p" data-group-id="5493600514-4">]</span><span class="p" data-group-id="5493600514-3">}</span><span class="w">
-</span><span class="p" data-group-id="5493600514-2">]</span><span class="p" data-group-id="5493600514-1">}</span><span class="p">.</span></code></pre><h2 id="usage" class="section-heading">
+</span><span class="p" data-group-id="0945339654-1">{</span><span class="ss">profiles</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0945339654-2">[</span><span class="w">
+    </span><span class="p" data-group-id="0945339654-3">{</span><span class="ss">test</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0945339654-4">[</span><span class="w">
+        </span><span class="p" data-group-id="0945339654-5">{</span><span class="ss">deps</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="0945339654-6">[</span><span class="p" data-group-id="0945339654-7">{</span><span class="ss">doctest</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span><span class="p" data-group-id="0945339654-7">}</span><span class="p" data-group-id="0945339654-6">]</span><span class="p" data-group-id="0945339654-5">}</span><span class="w">
+    </span><span class="p" data-group-id="0945339654-4">]</span><span class="p" data-group-id="0945339654-3">}</span><span class="w">
+</span><span class="p" data-group-id="0945339654-2">]</span><span class="p" data-group-id="0945339654-1">}</span><span class="p">.</span></code></pre><h2 id="usage" class="section-heading">
   <a href="#usage" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
@@ -155,7 +155,7 @@ Pages
   </a>
   <span class="text">shell</span>
 </h3>
-<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="3410349498-1">(</span><span class="ss">foo</span><span class="p" data-group-id="3410349498-1">)</span><span class="p">.</span><span class="w">
+<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="6342119949-1">(</span><span class="ss">foo</span><span class="p" data-group-id="6342119949-1">)</span><span class="p">.</span><span class="w">
 </span><span class="p">-</span><span class="na">moduledoc</span><span class="w"> </span><span class="s">&quot;&quot;&quot;
 Module doc tags can also be tested.
 
@@ -165,7 +165,7 @@ true
 ```
 &quot;&quot;&quot;</span><span class="p">.</span><span class="w">
 </span><span class="w">
-</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="3410349498-2">(</span><span class="p" data-group-id="3410349498-3">[</span><span class="ss">foo</span><span class="p">/</span><span class="mi">0</span><span class="p" data-group-id="3410349498-3">]</span><span class="p" data-group-id="3410349498-2">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="6342119949-2">(</span><span class="p" data-group-id="6342119949-3">[</span><span class="ss">foo</span><span class="p">/</span><span class="mi">0</span><span class="p" data-group-id="6342119949-3">]</span><span class="p" data-group-id="6342119949-2">)</span><span class="p">.</span><span class="w">
 </span><span class="w">
 </span><span class="p">-</span><span class="na">doc</span><span class="w"> </span><span class="s">&quot;&quot;&quot;
 ```erlang
@@ -173,13 +173,13 @@ true
 foo
 ```
 &quot;&quot;&quot;</span><span class="p">.</span><span class="w">
-</span><span class="nf">foo</span><span class="p" data-group-id="3410349498-4">(</span><span class="p" data-group-id="3410349498-4">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
-    </span><span class="ss">bar</span><span class="p">.</span></code></pre><p>Running it via shell:</p><pre><code class="makeup erlang" translate="no"><span class="gp unselectable">1&gt; </span><span class="nc">doctest</span><span class="p">:</span><span class="nf">module</span><span class="p" data-group-id="6047628139-1">(</span><span class="ss">foo</span><span class="p" data-group-id="6047628139-1">)</span><span class="p">.</span><span class="w">
+</span><span class="nf">foo</span><span class="p" data-group-id="6342119949-4">(</span><span class="p" data-group-id="6342119949-4">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+    </span><span class="ss">bar</span><span class="p">.</span></code></pre><p>Running it via shell:</p><pre><code class="makeup erlang" translate="no"><span class="gp unselectable">1&gt; </span><span class="nc">doctest</span><span class="p">:</span><span class="nf">module</span><span class="p" data-group-id="8654555644-1">(</span><span class="ss">foo</span><span class="p" data-group-id="8654555644-1">)</span><span class="p">.</span><span class="w">
 </span><span class="p">.</span><span class="n">F</span><span class="w">
 </span><span class="n">Failures</span><span class="p">:</span><span class="w">
 
   </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="nc">doctest</span><span class="p">:</span><span class="o">-</span><span class="ss">parse</span><span class="p">/</span><span class="mi">4</span><span class="o">-</span><span class="k">fun</span><span class="o">-</span><span class="mi">0</span><span class="o">-</span><span class="o">/</span><span class="mi">0</span><span class="p">:</span><span class="mi">13</span><span class="w">
-     </span><span class="n">Failure</span><span class="o">/</span><span class="n">Error</span><span class="p">:</span><span class="w"> </span><span class="o">?</span><span class="nf">assertEqual</span><span class="p" data-group-id="6047628139-2">(</span><span class="ss">foo</span><span class="p">,</span><span class="w"> </span><span class="nc">foo</span><span class="p">:</span><span class="nf">foo</span><span class="p" data-group-id="6047628139-3">(</span><span class="p" data-group-id="6047628139-3">)</span><span class="p" data-group-id="6047628139-2">)</span><span class="w">
+     </span><span class="n">Failure</span><span class="o">/</span><span class="n">Error</span><span class="p">:</span><span class="w"> </span><span class="o">?</span><span class="nf">assertEqual</span><span class="p" data-group-id="8654555644-2">(</span><span class="ss">foo</span><span class="p">,</span><span class="w"> </span><span class="nc">foo</span><span class="p">:</span><span class="nf">foo</span><span class="p" data-group-id="8654555644-3">(</span><span class="p" data-group-id="8654555644-3">)</span><span class="p" data-group-id="8654555644-2">)</span><span class="w">
        </span><span class="nc">expected</span><span class="p">:</span><span class="w"> </span><span class="ss">foo</span><span class="w">
             </span><span class="nc">got</span><span class="p">:</span><span class="w"> </span><span class="ss">bar</span><span class="w">
      </span><span class="c1">%% eunit_proc.erl:583:in `eunit_proc:run_group/2`</span><span class="w">
@@ -193,12 +193,12 @@ foo
   </a>
   <span class="text">parse_transform</span>
 </h3>
-<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="9810576466-1">(</span><span class="ss">math</span><span class="p" data-group-id="9810576466-1">)</span><span class="p">.</span><span class="w">
+<p>Take this module:</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">module</span><span class="p" data-group-id="9659764651-1">(</span><span class="ss">math</span><span class="p" data-group-id="9659764651-1">)</span><span class="p">.</span><span class="w">
 </span><span class="w">
-</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="9810576466-2">(</span><span class="p" data-group-id="9810576466-3">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="9810576466-3">]</span><span class="p" data-group-id="9810576466-2">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">export</span><span class="p" data-group-id="9659764651-2">(</span><span class="p" data-group-id="9659764651-3">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="9659764651-3">]</span><span class="p" data-group-id="9659764651-2">)</span><span class="p">.</span><span class="w">
 </span><span class="w">
-</span><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="9810576466-4">(</span><span class="n">TEST</span><span class="p" data-group-id="9810576466-4">)</span><span class="p">.</span><span class="w">
-</span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="9810576466-5">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="9810576466-5">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="9659764651-4">(</span><span class="n">TEST</span><span class="p" data-group-id="9659764651-4">)</span><span class="p">.</span><span class="w">
+</span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="9659764651-5">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="9659764651-5">)</span><span class="p">.</span><span class="w">
 </span><span class="c1">% -doctest &lt;see the options section&gt;.</span><span class="w">
 </span><span class="p">-</span><span class="na">endif</span><span class="p">.</span><span class="w">
 </span><span class="w">
@@ -216,10 +216,10 @@ _Example_:
 2
 ```
 &quot;&quot;&quot;</span><span class="p">.</span><span class="w">
-</span><span class="nf">add</span><span class="p" data-group-id="9810576466-6">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p" data-group-id="9810576466-6">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
+</span><span class="nf">add</span><span class="p" data-group-id="9659764651-6">(</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p" data-group-id="9659764651-6">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w">
     </span><span class="n">A</span><span class="o">+</span><span class="n">B</span><span class="p">.</span></code></pre><blockquote><p>Note that the code is defined like the Erlang shell, starting with <code class="inline">N&gt;</code>, where <code class="inline">N</code> is a number, and continues in multiple lines with <code class="inline">..</code>. The result is a value without starting with those shell symbols.</p></blockquote><p>Now, by running <code class="inline">rebar3 eunit</code>:</p><pre><code class="makeup shell" translate="no"><span class="">Finished in 0.018 seconds
 </span><span class="">2 tests, 0 failures
-</span></code></pre><p>By changing the first test to:</p><pre><code class="makeup erlang" translate="no"><span class="gp unselectable">1&gt; </span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="7551541792-1">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="7551541792-1">)</span><span class="p">.</span><span class="w">
+</span></code></pre><p>By changing the first test to:</p><pre><code class="makeup erlang" translate="no"><span class="gp unselectable">1&gt; </span><span class="nc">math</span><span class="p">:</span><span class="nf">add</span><span class="p" data-group-id="3353856777-1">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p" data-group-id="3353856777-1">)</span><span class="p">.</span><span class="w">
 </span><span class="mi">1</span></code></pre><p>And running <code class="inline">rebar3 eunit</code> again:</p><pre><code class="makeup shell" translate="no"><span class="">Failures:
 </span><span class="">
 </span><span class="">  1) doctest_parse_transform:-parse/4-fun-0-/0:26
@@ -238,10 +238,10 @@ _Example_:
   </a>
   <span class="text">Options</span>
 </h3>
-<p>Options are defined via the <code class="inline">-doctest</code> attribute and can be defined multiple times.</p><h4>Available options</h4><ul><li><code class="inline">boolean()</code>: enable or disable tests.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">true</span><span class="p">.</span></code></pre></li><li><p><code class="inline">[{atom(), arity()}]</code> | <code class="inline">all</code>: define the functions to be tested.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="8156327098-1">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="8156327098-1">]</span><span class="p">.</span></code></pre></li><li><code class="inline">map()</code>: define all or partial options.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="3879713773-1">#{</span><span class="w">
+<p>Options are defined via the <code class="inline">-doctest</code> attribute and can be defined multiple times.</p><h4>Available options</h4><ul><li><code class="inline">boolean()</code>: enable or disable tests.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="ss">true</span><span class="p">.</span></code></pre></li><li><p><code class="inline">[{atom(), arity()}]</code> | <code class="inline">all</code>: define the functions to be tested.</p><pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="1416136982-1">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="1416136982-1">]</span><span class="p">.</span></code></pre></li><li><code class="inline">map()</code>: define all or partial options.<pre><code class="makeup erlang" translate="no"><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="p" data-group-id="5256669996-1">#{</span><span class="w">
     </span><span class="ss">enabled</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ss">true</span><span class="p">,</span><span class="w">
-    </span><span class="ss">funs</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="3879713773-2">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="3879713773-2">]</span><span class="w">
-</span><span class="p" data-group-id="3879713773-1">}</span><span class="p">.</span></code></pre></li></ul><h3 id="important" class="section-heading">
+    </span><span class="ss">funs</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p" data-group-id="5256669996-2">[</span><span class="ss">add</span><span class="p">/</span><span class="mi">2</span><span class="p" data-group-id="5256669996-2">]</span><span class="w">
+</span><span class="p" data-group-id="5256669996-1">}</span><span class="p">.</span></code></pre></li></ul><h3 id="important" class="section-heading">
   <a href="#important" class="hover-link">
     <i class="ri-link-m" aria-hidden="true"></i>
   </a>
