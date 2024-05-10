@@ -23,7 +23,14 @@ Provides `module/1` and `module/2` to test doc attributes.
 -export([module/1, module/2]).
 
 % Support functions
--export([code_block/1, chunk/1, parse_mod/3, parse_fun/3, parse/4, run/1]).
+-export([ code_block/1
+        , chunk/1
+        , parse_mod/3
+        , parse_fun/3
+        , parse/4
+        , should_test_function/2
+        , run/1
+        ]).
 
 % Check OTP version >= 27.
 -include("doctest_otp_check.hrl").
@@ -45,7 +52,7 @@ module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
                 false ->
                     []
             end,
-            FunsTests = doc_tests(Mod, Docs, maps:get(funs, Opts, all)),
+            FunsTests = doc_tests(Mod, Docs, maps:get(funs, Opts, true)),
             run(ModTests ++ FunsTests);
         {error, Reason} ->
             {error, Reason}
@@ -101,6 +108,13 @@ parse(M, Ln, Chunk, ErrInfo) when
         {NewBindings, [Test | Acc]}
     end, {[], []}, Chunk)).
 
+should_test_function(true, _Fun) ->
+    true;
+should_test_function(false, _Fun) ->
+    false;
+should_test_function(Funs, Fun) when is_list(Funs) ->
+    lists:member(Fun, Funs).
+
 run(Tests) ->
     eunit:test(Tests, [no_tty, {report, {eunit_progress, [colored]}}]).
 
@@ -120,7 +134,7 @@ doc_tests(Mod, Docs, Funs) ->
     lists:filtermap(fun({Type, Anno, _Sign, Lang, _Meta}) ->
         case Type of
             {function, Fun, Arity} ->
-                case Funs =:= all orelse lists:member({Fun, Arity}, Funs) of
+                case should_test_function(Funs, {Fun, Arity}) of
                     true ->
                         % TODO: Check how to use shell_docs_markdown:parse_md/1.
                         %       It can simplify the capture of the code blocks.

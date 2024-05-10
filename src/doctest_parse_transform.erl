@@ -33,50 +33,55 @@ Just plug the header on your module:
 -export([parse_transform/2]).
 
 % Settings that the user can override
--record(doctest, {enabled, funs}).
+-record(doctest, {enabled, moduledoc, funs}).
 
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
 parse_transform(Forms, _Opt) ->
+    % Parse docs and run tests
     File = file(Forms),
     Docs = docs(doctest(doctest_attrs(Forms), File), doc_attrs(Forms)),
     doctest:run(tests(File, Forms, Docs)),
+    % Return the original forms
 	Forms.
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
 
-docs(DocTest, AllDocs) ->
-    case DocTest#doctest.funs of
-        all ->
-            AllDocs;
-        Funs when is_list(Funs) ->
-            lists:filter(fun
-                ({moduledoc, _Doc}) ->
-                    true;
-                ({{doc, {function, {F, A, _Ln}}}, _Doc}) ->
-                    lists:member({F, A}, Funs)
-            end, AllDocs)
-    end.
+docs(#doctest{moduledoc = ModDoc, funs = Funs}, AllDocs) ->
+    lists:filter(fun
+        ({moduledoc, _Doc}) ->
+            ModDoc;
+        ({{doc, {function, {F, A, _Ln}}}, _Doc}) ->
+            doctest:should_test_function(Funs, {F, A})
+    end, AllDocs).
 
 doctest(Attrs, SrcFile) ->
     parse_to_doctest(Attrs, SrcFile, #doctest{
         enabled = true,
-        funs = all
+        moduledoc = true,
+        funs = true
     }).
 
-parse_to_doctest([Enabled|T], SrcFile, DocTest) when is_boolean(Enabled) ->
+parse_to_doctest([Enabled | T], SrcFile, DocTest) when is_boolean(Enabled) ->
     parse_to_doctest(T, SrcFile, DocTest#doctest{enabled = Enabled});
-parse_to_doctest([Funs|T], SrcFile, DocTest) when is_list(Funs) ->
+parse_to_doctest([Funs | T], SrcFile, DocTest) when is_list(Funs) ->
     parse_to_doctest(T, SrcFile, DocTest#doctest{funs = Funs});
-parse_to_doctest([all|T], SrcFile, DocTest) ->
-    parse_to_doctest(T, SrcFile, DocTest#doctest{funs = all});
-parse_to_doctest([Map|T], SrcFile, DocTest) when is_map(Map) ->
+parse_to_doctest([{enabled, Enabled} | T], SrcFile, DocTest) when is_boolean(Enabled) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{enabled = Enabled});
+parse_to_doctest([{moduledoc, Enabled} | T], SrcFile, DocTest) when is_boolean(Enabled) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{moduledoc = Enabled});
+parse_to_doctest([{funs, Enabled} | T], SrcFile, DocTest) when is_boolean(Enabled)->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{funs = Enabled});
+parse_to_doctest([{funs, Funs} | T], SrcFile, DocTest) when is_list(Funs) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{funs = Funs});
+parse_to_doctest([Map | T], SrcFile, DocTest) when is_map(Map) ->
     parse_to_doctest(T, SrcFile, DocTest#doctest{
         enabled = maps:get(enabled, Map, DocTest#doctest.enabled),
+        moduledoc = maps:get(moduledoc, Map, DocTest#doctest.moduledoc),
         funs = maps:get(funs, Map, DocTest#doctest.funs)
     });
 parse_to_doctest([], _SrcFile, #doctest{} = DocTest) ->
