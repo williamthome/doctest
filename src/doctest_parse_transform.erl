@@ -54,7 +54,12 @@ docs(DocTest, AllDocs) ->
         all ->
             AllDocs;
         Funs when is_list(Funs) ->
-            maps:with(Funs, AllDocs)
+            lists:filter(fun
+                ({moduledoc, _Doc}) ->
+                    true;
+                ({{doc, {function, {F, A, _Ln}}}, _Doc}) ->
+                    lists:member({F, A}, Funs)
+            end, AllDocs)
     end.
 
 doctest(Attrs, SrcFile) ->
@@ -103,7 +108,7 @@ file(Forms) ->
     File.
 
 doctest_attrs(Forms) ->
-    attributes(doctest, Forms).
+    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
 
 doc_attrs(Forms) ->
     do_doc_attrs(filtermap_forms(
