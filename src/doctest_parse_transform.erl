@@ -43,7 +43,7 @@ parse_transform(Forms, _Opt) ->
     % Parse docs and run tests
     File = file(Forms),
     Docs = docs(doctest(doctest_attrs(Forms), File), doc_attrs(Forms)),
-    doctest:run(tests(File, Forms, Docs)),
+    doctest_eunit:test(tests(File, Forms, Docs)),
     % Return the original forms
 	Forms.
 

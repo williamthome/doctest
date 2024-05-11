@@ -29,7 +29,6 @@ Provides `module/1` and `module/2` to test doc attributes.
         , parse_fun/3
         , parse/4
         , should_test_function/2
-        , run/1
         ]).
 
 % Check OTP version >= 27.
@@ -64,7 +63,7 @@ module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
                     []
             end,
             FunsTests = doc_tests(Mod, Docs, maps:get(funs, Opts, true)),
-            run(ModTests ++ FunsTests);
+            doctest_eunit:test(ModTests ++ FunsTests);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -124,9 +123,6 @@ should_test_function(false, _Fun) ->
     false;
 should_test_function(Funs, Fun) when is_list(Funs) ->
     lists:member(Fun, Funs).
-
-run(Tests) ->
-    eunit:test(Tests, [no_tty, {report, {eunit_progress, [colored]}}]).
 
 %%%=====================================================================
 %%% Internal functions
