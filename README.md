@@ -70,6 +70,7 @@ Finished in 0.013 seconds
 Options can be provided when using the `doctest:module/2` function. The available options are:
 - `moduledoc` :: `boolean()`: enable or disable `-moduledoc` test
 - `funs` :: `boolean()` | `[{atom(), arity()}]`: enable or disable `-doc` tests or define the functions to be tested
+- `eunit` :: `default | term()`: set eunit options
 
 ### Testing via doctest header
 
@@ -135,24 +136,29 @@ Finished in 0.010 seconds
 #### Options
 
 Options are defined via the `-doctest` attribute and can be defined multiple times. The available options are:
-- `boolean()` | `{enabled, boolean()}`: enable or disable the test running, e.g:
+- `boolean()` | `{enabled, boolean()}`: enable or disable the test running, e.g.:
   ```erlang
   -doctest true.
   ```
-- `{moduledoc, boolean()}`: enable or disable `-moduledoc` test, e.g:
+- `{moduledoc, boolean()}`: enable or disable `-moduledoc` test, e.g.:
   ```erlang
   -doctest {moduledoc, true}.
   ```
-- `[{atom(), arity()}]` | `{funs, [{atom(), arity()}] | boolean()}`: enable or disable `-doc` tests or define the functions to be tested, e.g:
+- `[{atom(), arity()}]` | `{funs, [{atom(), arity()}] | boolean()}`: enable or disable `-doc` tests or define the functions to be tested, e.g.:
   ```erlang
   -doctest [add/2].
   ```
-- `map()`: define all or partial options, e.g:
+- `eunit` :: `default | term()`: set eunit options, e.g.:
+  ```erlang
+  -doctest {eunit, default}.
+  ```
+- `map()`: define all or partial options, e.g.:
   ```erlang
   -doctest #{
       enabled => true,
       moduledoc => true,
-      funs => [add/2]
+      funs => [add/2],
+      eunit => default
   }.
   ```
 
