@@ -70,7 +70,7 @@ Finished in 0.013 seconds
 Options can be provided when using the `doctest:module/2` function. The available options are:
 - `moduledoc` :: `boolean()`: enable or disable `-moduledoc` test
 - `funs` :: `boolean()` | `[{atom(), arity()}]`: enable or disable `-doc` tests or define the functions to be tested
-- `eunit` :: `default | term()`: set eunit options
+- `eunit` :: `resolve | term()`: set [EUnit options](#eunit-options)
 
 ### Testing via doctest header
 
@@ -148,9 +148,9 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
   ```erlang
   -doctest [add/2].
   ```
-- `eunit` :: `default | term()`: set eunit options, e.g.:
+- `eunit` :: `resolve | term()`: set [EUnit options](#eunit-options), e.g.:
   ```erlang
-  -doctest {eunit, default}.
+  -doctest {eunit, resolve}.
   ```
 - `map()`: define all or partial options, e.g.:
   ```erlang
@@ -158,9 +158,36 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
       enabled => true,
       moduledoc => true,
       funs => [add/2],
-      eunit => default
+      eunit => resolve
   }.
   ```
+
+### EUnit options
+
+Valid EUnit options are the `resolve` atom and a proplist.
+
+By defining `resolve` as the EUnit options, `doctest` will try to resolve the options via `rebar`. Custom options can be defined as documented at [rebar3.org](https://rebar3.org/docs/testing/eunit/#eunit_opts):
+
+> The default EUnit options can be configured, as documented [here](https://www.erlang.org/doc/man/eunit.html#test-2).
+>
+> Interesting undocumented options are:
+>
+> - `no_tty` completely disables the default EUnit reporter output
+> - `{report, {Module, Args}}` runs a custom EUnit reporter (the functionality that prints results to the shell). The reporter module needs the following callbacks implemented:
+>   ```erlang
+>   -export([start/0]).
+>   -export([start/1]).
+>   -export([init/1]).
+>   -export([handle_begin/3]).
+>   -export([handle_end/3]).
+>   -export([handle_cancel/3]).
+>   -export([terminate/2]).
+>   ```
+>
+> `no_tty` and `report` can be combined to replace the EUnit reporter with a custom one:
+> ```erlang
+> {eunit_opts, [no_tty, {report, {my_reporter, Opts}}]}.
+> ```
 
 ## TODO
 

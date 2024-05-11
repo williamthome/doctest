@@ -37,7 +37,7 @@ Just plug the header on your module:
     enabled = true,
     moduledoc = true,
     funs = true,
-    eunit = default
+    eunit = resolve
 }).
 
 %%%=====================================================================
