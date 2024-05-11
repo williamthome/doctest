@@ -56,14 +56,10 @@ module(Mod) ->
 module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
-            ModTests = case maps:get(moduledoc, Opts, true) of
-                true ->
-                    moduledoc_tests(Mod, Anno, Lang);
-                false ->
-                    []
-            end,
-            FunsTests = doc_tests(Mod, Docs, maps:get(funs, Opts, true)),
-            doctest_eunit:test(ModTests ++ FunsTests);
+            doctest_eunit:test([
+                moduledoc_tests(Mod, Anno, Lang, Opts),
+                doc_tests(Mod, Docs, Opts)
+            ]);
         {error, Reason} ->
             {error, Reason}
     end.
@@ -128,7 +124,15 @@ should_test_function(Funs, Fun) when is_list(Funs) ->
 %%% Internal functions
 %%%=====================================================================
 
-moduledoc_tests(Mod, Anno, Lang) ->
+moduledoc_tests(Mod, Anno, Lang, Opts) ->
+    case maps:get(moduledoc, Opts, true) of
+        true ->
+            do_moduledoc_tests(Mod, Anno, Lang);
+        false ->
+            []
+    end.
+
+do_moduledoc_tests(Mod, Anno, Lang) ->
     case code_blocks(unwrap_md(Lang)) of
         {ok, CodeBlocks} ->
             parse_mod(Mod, erl_anno:line(Anno), CodeBlocks);
@@ -136,7 +140,10 @@ moduledoc_tests(Mod, Anno, Lang) ->
             []
     end.
 
-doc_tests(Mod, Docs, Funs) ->
+doc_tests(Mod, Docs, Opts) ->
+    do_doc_tests(Mod, Docs, maps:get(funs, Opts, true)).
+
+do_doc_tests(Mod, Docs, Funs) ->
     lists:filtermap(fun({Type, Anno, _Sign, Lang, _Meta}) ->
         case Type of
             {function, Fun, Arity} ->
