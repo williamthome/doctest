@@ -89,20 +89,18 @@ parse_to_doctest([], _SrcFile, #doctest{} = DocTest) ->
 
 tests(File, Forms, Docs) ->
     lists:foldl(fun({Kind, {MdLn, Md}}, Acc) ->
-        case doctest:code_block(Md) of
-            {ok, CodeBlock} ->
+        case doctest:code_blocks(Md) of
+            {ok, CodeBlocks} ->
                 {ok, M, Bin} = compile:forms(Forms, [
                     {i, "eunit/include/eunit.hrl"}
                 ]),
                 {module, M} = code:load_binary(M, File, Bin),
-                Chunk = doctest:chunk(CodeBlock),
-                Tests = case Kind of
+                case Kind of
                     moduledoc ->
-                        doctest:parse_mod(M, MdLn, Chunk);
+                        [doctest:parse_mod(M, MdLn, CodeBlocks) | Acc];
                     {doc, {function, {F, A, Ln}}} ->
-                        doctest:parse_fun({M, F, A}, Ln, Chunk)
-                end,
-                [Tests | Acc];
+                        [doctest:parse_fun({M, F, A}, Ln, CodeBlocks) | Acc]
+                end;
             none ->
                 Acc
         end

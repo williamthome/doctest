@@ -27,9 +27,15 @@ false
 -export([foo/0]).
 
 -doc """
+Foo
 ```erlang
 1> foo:foo().
 foo
+```
+Bar
+```erlang
+1> foo:foo() =:= foo.
+true
 ```
 """.
 foo() ->

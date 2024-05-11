@@ -23,7 +23,7 @@ Provides `module/1` and `module/2` to test doc attributes.
 -export([module/1, module/2]).
 
 % Support functions
--export([ code_block/1
+-export([ code_blocks/1
         , chunk/1
         , parse_mod/3
         , parse_fun/3
@@ -73,14 +73,14 @@ module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
 %%% Support functions
 %%%=====================================================================
 
-code_block(Md) ->
-    case re:run(
-        Md,
-        "(?ms)^(```[`]*)erlang\\s*\\n(.*?)(?:\\n^(\\1)(\\s+|\\n|$))",
-        [global, {capture, all_but_first, binary}]
-    ) of
-        {match, [[_, CodeBlock, _, _]]} ->
-            {ok, CodeBlock};
+code_blocks(Markdown) ->
+    Pattern = "(?ms)^(```[`]*)erlang\\s*\\n(.*?)(?:\\n^(\\1)(\\s+|\\n|$))",
+    Opts = [global, {capture, all_but_first, binary}],
+    case re:run(Markdown, Pattern, Opts) of
+        {match, Groups} ->
+            {ok, lists:map(fun([_, CodeBlock, _, _]) ->
+                CodeBlock
+            end, Groups)};
         nomatch ->
             none
     end.
@@ -88,36 +88,35 @@ code_block(Md) ->
 chunk(CodeBlock) ->
     rev_normalize(join(split(CodeBlock)), []).
 
-parse_mod(M, Ln, Chunk) ->
-    parse(M, Ln, Chunk, []).
+parse_mod(M, Ln, CodeBlocks) ->
+    parse(M, Ln, CodeBlocks, []).
 
-parse_fun({M, F, A}, Ln, Chunk) ->
-    parse(M, Ln, Chunk, [
-        {function, F},
-        {arity, A}
-    ]).
+parse_fun({M, F, A}, Ln, CodeBlocks) ->
+    parse(M, Ln, CodeBlocks, [{function, F}, {arity, A}]).
 
-parse(M, Ln, Chunk, ErrInfo) when
-    is_atom(M), is_integer(Ln), Ln > 0, is_list(ErrInfo) ->
-    element(2, lists:foldl(fun({Left, Right}, {Bindings, Acc}) ->
-        {LeftValue, NewBindings} = eval(Left, Bindings),
-        {RightValue, []} = eval(Right, []),
-        Test = {Ln, fun() ->
-            case LeftValue =:= RightValue of
-                true ->
-                    ok;
-                false ->
-                    erlang:error({assertEqual, ErrInfo ++ [
-                        {module, M},
-                        {line, Ln},
-                        {expression, Left},
-                        {expected, RightValue},
-                        {value, LeftValue}
-                    ]})
-            end
-        end},
-        {NewBindings, [Test | Acc]}
-    end, {[], []}, Chunk)).
+parse(M, Ln, CodeBlocks, ErrInfo) when
+    is_atom(M), is_integer(Ln), Ln > 0, is_list(CodeBlocks), is_list(ErrInfo) ->
+    element(2, lists:foldl(fun(CodeBlock, Acc) ->
+        lists:foldl(fun({Left, Right}, {Bindings, Acc1}) ->
+            {LeftValue, NewBindings} = eval(Left, Bindings),
+            {RightValue, []} = eval(Right, []),
+            Test = {Ln, fun() ->
+                case LeftValue =:= RightValue of
+                    true ->
+                        ok;
+                    false ->
+                        erlang:error({assertEqual, ErrInfo ++ [
+                            {module, M},
+                            {line, Ln},
+                            {expression, Left},
+                            {expected, RightValue},
+                            {value, LeftValue}
+                        ]})
+                end
+            end},
+            {NewBindings, [Test | Acc1]}
+        end, {[], Acc}, chunk(CodeBlock))
+    end, [], CodeBlocks)).
 
 should_test_function(true, _Fun) ->
     true;
@@ -134,9 +133,9 @@ run(Tests) ->
 %%%=====================================================================
 
 moduledoc_tests(Mod, Anno, Lang) ->
-    case code_block(unwrap_md(Lang)) of
-        {ok, CodeBlock} ->
-            parse_mod(Mod, erl_anno:line(Anno), chunk(CodeBlock));
+    case code_blocks(unwrap_md(Lang)) of
+        {ok, CodeBlocks} ->
+            parse_mod(Mod, erl_anno:line(Anno), CodeBlocks);
         none ->
             []
     end.
@@ -148,14 +147,13 @@ doc_tests(Mod, Docs, Funs) ->
                 case should_test_function(Funs, {Fun, Arity}) of
                     true ->
                         % TODO: Check how to use shell_docs_markdown:parse_md/1.
-                        %       It can simplify the capture of the code blocks.
-                        case code_block(unwrap_md(Lang)) of
-                            {ok, CodeBlock} ->
-                                {true, parse_fun(
-                                    {Mod, Fun, Arity},
-                                    erl_anno:line(Anno),
-                                    chunk(CodeBlock)
-                                )};
+                        %       It can simplify the capture of the code blocks,
+                        %       but it's only available since OTP-27-rc3.
+                        case code_blocks(unwrap_md(Lang)) of
+                            {ok, CodeBlocks} ->
+                                MFA = {Mod, Fun, Arity},
+                                Ln = erl_anno:line(Anno),
+                                {true, parse_fun(MFA, Ln, CodeBlocks)};
                             none ->
                                 false
                         end;
