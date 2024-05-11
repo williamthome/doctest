@@ -24,11 +24,11 @@
 %%%=====================================================================
 
 test(Tests) ->
-    test(Tests, default).
+    test(Tests, resolve).
 
-test(Tests, default) ->
+test(Tests, resolve) ->
     eunit:test(Tests, options());
-test(Tests, Options) ->
+test(Tests, Options) when is_list(Options) ->
     eunit:test(Tests, Options).
 
 moduledoc_tests(Mod, Ln, CodeBlocks) ->
