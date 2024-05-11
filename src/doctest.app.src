@@ -2,7 +2,7 @@
     {description, "A library to test Erlang doc attributes"},
     {vsn, "0.5.1"},
     {registered, []},
-    {applications, [kernel, stdlib, syntax_tools, compiler, eunit]},
+    {applications, [kernel, stdlib]},
     {env, []},
     {modules, []},
     {licenses, ["Apache-2.0"]},
