@@ -17,7 +17,7 @@
 -moduledoc false.
 
 % API functions
--export([test/1, test/2]).
+-export([test/1, test/2, moduledoc_tests/3, doc_tests/3]).
 
 %%%=====================================================================
 %%% API functions
@@ -31,6 +31,12 @@ test(Tests, default) ->
 test(Tests, Options) ->
     eunit:test(Tests, Options).
 
+moduledoc_tests(Mod, Ln, CodeBlocks) ->
+    tests(Mod, Ln, CodeBlocks, []).
+
+doc_tests({M, F, A}, Ln, CodeBlocks) ->
+    tests(M, Ln, CodeBlocks, [{function, F}, {arity, A}]).
+
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
@@ -42,6 +48,79 @@ options() ->
         false ->
             []
     end.
+
+tests(Mod, Ln, CodeBlocks, ExtraErrInfo) when
+    is_atom(Mod), is_integer(Ln), Ln > 0,
+    is_list(CodeBlocks), is_list(ExtraErrInfo) ->
+    element(2, lists:foldl(fun(CodeBlock, Acc) ->
+        lists:foldl(fun({Left, Right}, {Bindings, Acc1}) ->
+            {LeftValue, NewBindings} = eval(Left, Bindings),
+            {RightValue, []} = eval(Right, []),
+            Test = {Ln, fun() ->
+                case LeftValue =:= RightValue of
+                    true ->
+                        ok;
+                    false ->
+                        erlang:error({assertEqual, ExtraErrInfo ++ [
+                            {module, Mod},
+                            {line, Ln},
+                            {expression, Left},
+                            {expected, RightValue},
+                            {value, LeftValue}
+                        ]})
+                end
+            end},
+            {NewBindings, [Test | Acc1]}
+        end, {[], Acc}, code_block_asserts(CodeBlock))
+    end, [], CodeBlocks)).
+
+code_block_asserts(CodeBlock) ->
+    asserts(chunks(lines(CodeBlock)), []).
+
+lines(CodeBlock) ->
+    binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
+
+chunks(Parts) ->
+    Opts = [{capture, all_but_first, binary}],
+    lists:foldl(fun(Part, Acc) ->
+        case re:run(Part, <<"^[0-9]+>\\s+(.*?)\\.*$">>, Opts) of
+            {match, [Left]} ->
+                [{left, Left} | Acc];
+            nomatch ->
+                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\.*$">>, Opts) of
+                    {match, [More]} ->
+                        [{more, More} | Acc];
+                    nomatch ->
+                        [{right, Part} | Acc]
+                end
+        end
+    end, [], Parts).
+
+% TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
+%       1> ok.
+%       2> ok.
+%       And this should be wrong:
+%       9> error.
+%       8> error.
+asserts([{right, R}, {more, M}, {left, L} | T], Acc) ->
+    asserts(T, [{<<L/binary, $\s, M/binary>>, R} | Acc]);
+asserts([{right, R}, {more, MR}, {more, ML} | T], Acc) ->
+    asserts([{right, R}, {more, <<ML/binary, $\s, MR/binary>>} | T], Acc);
+asserts([{right, R}, {left, L} | T], Acc) ->
+    asserts(T, [{L, R} | Acc]);
+asserts([], Acc) ->
+    Acc;
+% Code block is not a test, e.g:
+% foo() ->
+%     bar.
+asserts(_, _) ->
+    [].
+
+eval(Bin, Bindings) ->
+    {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
+    {ok, Exprs} = erl_parse:parse_exprs(Tokens),
+    {value, Value, NewBindings} = erl_eval:exprs(Exprs, Bindings),
+    {Value, NewBindings}.
 
 %%%=====================================================================
 %%% rebar3 non-exported functions
