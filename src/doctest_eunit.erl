@@ -127,7 +127,7 @@ eval(Bin, Bindings) ->
 %%%=====================================================================
 
 % TODO: Maybe submit a PR exporting 'resolve_eunit_opts/1'.
-% @see https://github.com/erlang/rebar3/blob/b64d94f4e6fb738c4a3004faf833e0b9617d86a8/apps/rebar/src/rebar_prv_eunit.erl#L443
+%       See https://github.com/erlang/rebar3/blob/b64d94f4e6fb738c4a3004faf833e0b9617d86a8/apps/rebar/src/rebar_prv_eunit.erl#L443
 
 resolve_eunit_opts(State) ->
     {Opts, _} = rebar_state:command_parsed_args(State),
