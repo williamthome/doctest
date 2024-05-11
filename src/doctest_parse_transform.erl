@@ -111,14 +111,14 @@ doc_attrs(Forms) ->
                     moduledoc ->
                         case normalize_attribute(Attr) of
                             {Ln, Md} when is_list(Md); is_binary(Md) ->
-                                {true, {moduledoc, {Ln, Md}}};
+                                {true, {moduledoc, {Ln, iolist_to_binary(Md)}}};
                             _ ->
                                 false
                         end;
                     doc ->
                         case normalize_attribute(Attr) of
                             {Ln, Md} when is_list(Md); is_binary(Md) ->
-                                {true, {doc, {Ln, Md}}};
+                                {true, {doc, {Ln, iolist_to_binary(Md)}}};
                             _ ->
                                 false
                         end;

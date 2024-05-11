@@ -32,12 +32,13 @@
 % TODO: Check how to use shell_docs_markdown:parse_md/1.
 %       It can simplify the capture of the code blocks,
 %       but it's only available since OTP-27-rc3.
-code_blocks(Markdown) when is_list(Markdown); is_binary(Markdown) ->
+code_blocks(Markdown) when is_binary(Markdown) ->
     case re:run(Markdown, ?CODE_BLOCK_RE, [
-        global, {capture, all_but_first, binary}
+        global, {capture, all_but_first, index}
     ]) of
         {match, Groups} ->
-            {ok, [CodeBlock || [_, CodeBlock, _, _] <- Groups]};
+            {ok, [{binary_part(Markdown, Pos, Len), loc(Markdown, Pos)}
+                 || [_, {Pos, Len}, _, _] <- Groups]};
         nomatch ->
             none
     end.
@@ -46,4 +47,17 @@ code_blocks(Markdown) when is_list(Markdown); is_binary(Markdown) ->
 %%% Internal functions
 %%%=====================================================================
 
-% nothing here yet!
+loc(Markdown, Pos) ->
+    Pre = binary_part(Markdown, 0, Pos),
+    parse_loc(Pre, {1, 1}).
+
+parse_loc(<<$\r, $\n, Rest/binary>>, {Ln, _Col}) ->
+    parse_loc(Rest, {Ln+1, 1});
+parse_loc(<<$\r, Rest/binary>>, {Ln, _Col}) ->
+    parse_loc(Rest, {Ln+1, 1});
+parse_loc(<<$\n, Rest/binary>>, {Ln, _Col}) ->
+    parse_loc(Rest, {Ln+1, 1});
+parse_loc(<<_, Rest/binary>>, {Ln, Col}) ->
+    parse_loc(Rest, {Ln, Col+1});
+parse_loc(<<>>, {Ln, Col}) ->
+    {Ln, Col}.
