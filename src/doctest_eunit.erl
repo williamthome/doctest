@@ -17,14 +17,19 @@
 -moduledoc false.
 
 % API functions
--export([test/1]).
+-export([test/1, test/2]).
 
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
 test(Tests) ->
-    eunit:test(Tests, options()).
+    test(Tests, default).
+
+test(Tests, default) ->
+    eunit:test(Tests, options());
+test(Tests, Options) ->
+    eunit:test(Tests, Options).
 
 %%%=====================================================================
 %%% Internal functions

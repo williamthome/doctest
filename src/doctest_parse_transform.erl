@@ -33,7 +33,7 @@ Just plug the header on your module:
 -export([parse_transform/2]).
 
 % Settings that the user can override
--record(doctest, {enabled, moduledoc, funs}).
+-record(doctest, {enabled, moduledoc, funs, eunit}).
 
 %%%=====================================================================
 %%% API functions
@@ -42,8 +42,9 @@ Just plug the header on your module:
 parse_transform(Forms, _Opt) ->
     % Parse docs and run tests
     File = file(Forms),
-    Docs = docs(doctest(doctest_attrs(Forms), File), doc_attrs(Forms)),
-    doctest_eunit:test(tests(File, Forms, Docs)),
+    DocTest = doctest(doctest_attrs(Forms), File),
+    Docs = docs(DocTest, doc_attrs(Forms)),
+    doctest_eunit:test(tests(File, Forms, Docs), DocTest#doctest.eunit),
     % Return the original forms
 	Forms.
 
@@ -63,7 +64,8 @@ doctest(Attrs, SrcFile) ->
     parse_to_doctest(Attrs, SrcFile, #doctest{
         enabled = true,
         moduledoc = true,
-        funs = true
+        funs = true,
+        eunit = default
     }).
 
 parse_to_doctest([Enabled | T], SrcFile, DocTest) when is_boolean(Enabled) ->
@@ -78,11 +80,14 @@ parse_to_doctest([{funs, Enabled} | T], SrcFile, DocTest) when is_boolean(Enable
     parse_to_doctest(T, SrcFile, DocTest#doctest{funs = Enabled});
 parse_to_doctest([{funs, Funs} | T], SrcFile, DocTest) when is_list(Funs) ->
     parse_to_doctest(T, SrcFile, DocTest#doctest{funs = Funs});
+parse_to_doctest([{eunit, Eunit} | T], SrcFile, DocTest) ->
+    parse_to_doctest(T, SrcFile, DocTest#doctest{eunit = Eunit});
 parse_to_doctest([Map | T], SrcFile, DocTest) when is_map(Map) ->
     parse_to_doctest(T, SrcFile, DocTest#doctest{
         enabled = maps:get(enabled, Map, DocTest#doctest.enabled),
         moduledoc = maps:get(moduledoc, Map, DocTest#doctest.moduledoc),
-        funs = maps:get(funs, Map, DocTest#doctest.funs)
+        funs = maps:get(funs, Map, DocTest#doctest.funs),
+        eunit = maps:get(eunit, Map, DocTest#doctest.eunit)
     });
 parse_to_doctest([], _SrcFile, #doctest{} = DocTest) ->
     DocTest.

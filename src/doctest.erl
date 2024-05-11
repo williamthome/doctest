@@ -37,7 +37,8 @@ Provides `module/1` and `module/2` to test doc attributes.
 
 -type options() :: #{
     moduledoc => boolean(),
-    funs => boolean() | [{atom(), arity()}]
+    funs => boolean() | [{atom(), arity()}],
+    eunit => default | term()
 }.
 -type test_result() :: ok | error | {error, term()}.
 
@@ -56,10 +57,12 @@ module(Mod) ->
 module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
-            doctest_eunit:test([
+            Tests = [
                 moduledoc_tests(Mod, Anno, Lang, Opts),
                 doc_tests(Mod, Docs, Opts)
-            ]);
+            ],
+            EunitOpts = maps:get(eunit, Opts, default),
+            doctest_eunit:test(Tests, EunitOpts);
         {error, Reason} ->
             {error, Reason}
     end.
