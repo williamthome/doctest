@@ -33,12 +33,7 @@ Just plug the header on your module:
 -export([parse_transform/2]).
 
 % Settings that the user can override
--record(settings, {
-    enabled = true,
-    moduledoc = true,
-    funs = true,
-    eunit = resolve
-}).
+-record(settings, {enabled, moduledoc, funs, eunit}).
 
 %%%=====================================================================
 %%% API functions
@@ -46,7 +41,7 @@ Just plug the header on your module:
 
 parse_transform(Forms, _Opt) ->
     % Parse docs and run tests
-    Settings = settings(doctest_attrs(Forms), #settings{}),
+    Settings = settings(doctest_attrs(Forms), default_settings()),
     DocAttrs = filter_doc_attrs(Settings, doc_attrs(Forms)),
     doctest_eunit:test(tests(Forms, DocAttrs), Settings#settings.eunit),
     % Return the original forms
@@ -80,6 +75,18 @@ settings([Map | T], Settings) when is_map(Map) ->
 settings([], #settings{} = Settings) ->
     Settings.
 
+doctest_attrs(Forms) ->
+    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
+
+default_settings() ->
+    Env = application:get_all_env(doctest),
+    #settings{
+        enabled = proplists:get_value(enabled, Env, true),
+        moduledoc = proplists:get_value(moduledoc, Env, true),
+        funs = proplists:get_value(funs, Env, true),
+        eunit = proplists:get_value(eunit, Env, resolve)
+    }.
+
 filter_doc_attrs(#settings{moduledoc = ShouldTestModDoc, funs = FunsOpts}, AllDocs) ->
     lists:filter(fun
         ({moduledoc, _Doc}) ->
@@ -94,9 +101,6 @@ keep_fun(_Fun, false) ->
     false;
 keep_fun(Fun, Funs) when is_list(Funs) ->
     lists:member(Fun, Funs).
-
-doctest_attrs(Forms) ->
-    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
 
 doc_attrs(Forms) ->
     normalize_doc_attrs(filtermap_forms(

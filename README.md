@@ -162,6 +162,19 @@ Options are defined via the `-doctest` attribute and can be defined multiple tim
   }.
   ```
 
+### Global options
+
+Options can be globally defined via a [config file](https://www.erlang.org/doc/man/config.html), e.g.:
+```erlang
+% config/sys.config
+[{doctest, [
+    {enabled, true},
+    {moduledoc, false},
+    {funs, true},
+    {eunit, [no_tty, {report, {eunit_progress, [colored, profile]}}]}
+]}].
+```
+
 ### EUnit options
 
 Valid EUnit options are the `resolve` atom and a proplist.
