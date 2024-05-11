@@ -45,11 +45,12 @@ module(Mod) ->
 -spec module(module(), options()) -> test_result().
 
 module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
-    ShouldTestModDoc = maps:get(moduledoc, Opts, true),
-    FunsOpts = maps:get(funs, Opts, true),
+    Env = application:get_all_env(doctest),
+    ShouldTestModDoc = maps:get(moduledoc, Opts, proplists:get_value(moduledoc, Env, true)),
+    FunsOpts = maps:get(funs, Opts, proplists:get_value(funs, Env, true)),
     case doctest_parse:module_tests(Mod, ShouldTestModDoc, FunsOpts) of
         {ok, Tests} ->
-            EunitOpts = maps:get(eunit, Opts, resolve),
+            EunitOpts = maps:get(eunit, Opts, proplists:get_value(eunit, Env, resolve)),
             doctest_eunit:test(Tests, EunitOpts);
         {error, Reason} ->
             {error, Reason}
