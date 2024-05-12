@@ -47,13 +47,13 @@ foo() ->
     bar.
 ````
 
-Running it via shell:
+Running it via `rebar3 as test shell`:
 ```erlang
 1> doctest:module(foo).
 .F
 Failures:
 
-  1) doctest:-parse/4-fun-0-/0:13
+  1) foo:foo/0: -doc | Ln 13
      Failure/Error: ?assertEqual(foo, foo:foo())
        expected: foo
             got: bar
@@ -61,7 +61,7 @@ Failures:
      Output:
      Output:
 
-Finished in 0.013 seconds
+Finished in 0.010 seconds
 2 tests, 1 failures
 ```
 
@@ -121,7 +121,7 @@ And running `rebar3 eunit` again:
 ```shell
 Failures:
 
-  1) doctest_parse_transform:-parse/4-fun-0-/0:26
+  1) math:add/2: -doc | Ln 15
      Failure/Error: ?assertEqual(1, math:add(1, 1))
        expected: 1
             got: 2

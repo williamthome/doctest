@@ -29,14 +29,15 @@
 module_tests(Mod, ShouldTestModDoc, FunsOpts) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
+            Desc = iolist_to_binary(io_lib:format("module '~w'", [Mod])),
             case ShouldTestModDoc of
                 true ->
-                    {ok, [
+                    {ok, {Desc, lists:flatten([
                         moduledoc_attr_tests(Mod, Anno, Lang),
                         doc_attr_tests(Mod, Docs, FunsOpts)
-                    ]};
+                    ])}};
                 false ->
-                    {ok, doc_attr_tests(Mod, Docs, FunsOpts)}
+                    {ok, {Desc, doc_attr_tests(Mod, Docs, FunsOpts)}}
             end;
         {error, Reason} ->
             {error, Reason}
@@ -47,13 +48,20 @@ module_tests(Mod, ShouldTestModDoc, FunsOpts) ->
 %%%=====================================================================
 
 unwrap(#{<<"en">> := Markdown}) ->
-    Markdown.
+    {ok, Markdown};
+unwrap(none) ->
+    none.
 
 moduledoc_attr_tests(Mod, Anno, Lang) ->
-    case doctest_md:code_blocks(unwrap(Lang)) of
-        {ok, CodeBlocks} ->
-            Ln = erl_anno:line(Anno),
-            doctest_eunit:moduledoc_tests(Mod, Ln, CodeBlocks);
+    case unwrap(Lang) of
+        {ok, Markdown} ->
+            case doctest_md:code_blocks(Markdown) of
+                {ok, CodeBlocks} ->
+                    Ln = erl_anno:line(Anno),
+                    doctest_eunit:moduledoc_tests(Mod, Ln, CodeBlocks);
+                none ->
+                    []
+            end;
         none ->
             []
     end.
@@ -63,11 +71,16 @@ doc_attr_tests(Mod, Docs, FunsOpts) ->
         ({{function, Fun, Arity}, Anno, _Sign, Lang, _Meta}) ->
             case keep_fun({Fun, Arity}, FunsOpts) of
                 true ->
-                    case doctest_md:code_blocks(unwrap(Lang)) of
-                        {ok, CodeBlocks} ->
-                            MFA = {Mod, Fun, Arity},
-                            Ln = erl_anno:line(Anno),
-                            {true, doctest_eunit:doc_tests(MFA, Ln, CodeBlocks)};
+                    case unwrap(Lang) of
+                        {ok, Markdown} ->
+                            case doctest_md:code_blocks(Markdown) of
+                                {ok, CodeBlocks} ->
+                                    MFA = {Mod, Fun, Arity},
+                                    Ln = erl_anno:line(Anno),
+                                    {true, doctest_eunit:doc_tests(MFA, Ln, CodeBlocks)};
+                                none ->
+                                    false
+                            end;
                         none ->
                             false
                     end;
