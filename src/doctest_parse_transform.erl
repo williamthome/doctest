@@ -142,25 +142,26 @@ normalize_doc_attrs([], Acc) ->
 
 tests(Forms, DocAttrs) ->
     File = file(Forms),
-    lists:foldl(fun({Kind, {MarkdownLn, Markdown}}, Acc) ->
+    {ok, Mod, Bin} = compile:forms(Forms, [
+        {i, "eunit/include/eunit.hrl"}
+    ]),
+    {module, Mod} = code:load_binary(Mod, File, Bin),
+    Desc = iolist_to_binary(io_lib:format("module '~w'", [Mod])),
+    {Desc, lists:flatten(lists:foldl(fun({Kind, {MarkdownLn, Markdown}}, Acc) ->
         case doctest_md:code_blocks(Markdown) of
             {ok, CodeBlocks} ->
-                {ok, M, Bin} = compile:forms(Forms, [
-                    {i, "eunit/include/eunit.hrl"}
-                ]),
-                {module, M} = code:load_binary(M, File, Bin),
                 case Kind of
                     moduledoc ->
-                        [doctest_eunit:moduledoc_tests(M, MarkdownLn, CodeBlocks)
+                        [doctest_eunit:moduledoc_tests(Mod, MarkdownLn, CodeBlocks)
                         | Acc];
                     {doc, {function, {F, A, Ln}}} ->
-                        [doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks)
+                        [doctest_eunit:doc_tests({Mod, F, A}, Ln, CodeBlocks)
                         | Acc]
                 end;
             none ->
                 Acc
         end
-    end, [], DocAttrs).
+    end, [], DocAttrs))}.
 
 file(Forms) ->
     [{_Ln, File}, _Loc] = hd(attributes(file, Forms)),

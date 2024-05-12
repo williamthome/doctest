@@ -31,11 +31,59 @@ test(Tests, resolve) ->
 test(Tests, Options) when is_list(Options) ->
     eunit:test(Tests, Options).
 
-moduledoc_tests(Mod, Ln, CodeBlocks) ->
-    tests(Mod, Ln, CodeBlocks, []).
+moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
+    tests(Mod, AttrLn, CodeBlocks,
+        fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
+            Desc = iolist_to_binary(
+                io_lib:format("-moduledoc:~p|~w", [AttrLn, Mod])
+            ),
+            {Desc, Ln, fun() ->
+                case LeftValue =:= RightValue of
+                    true ->
+                        ok;
+                    false ->
+                        erlang:error({assertEqual, [
+                            {doctest, [
+                                {attribute, moduledoc}
+                            ]},
+                            {module, Mod},
+                            {line, Ln},
+                            {expression, Left},
+                            {expected, RightValue},
+                            {value, LeftValue}
+                        ]})
+                end
+            end}
+        end
+    ).
 
-doc_tests({M, F, A}, Ln, CodeBlocks) ->
-    tests(M, Ln, CodeBlocks, [{function, F}, {arity, A}]).
+doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
+    tests(M, AttrLn, CodeBlocks,
+        fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
+            Desc = iolist_to_binary(
+                io_lib:format("-doc:~p|~w:~w/~p", [AttrLn, M, F, A])
+            ),
+            {Desc, {M, F, A}, fun() ->
+                case LeftValue =:= RightValue of
+                    true ->
+                        ok;
+                    false ->
+                        erlang:error({assertEqual, [
+                            {doctest, [
+                                {attribute, doc}
+                            ]},
+                            {module, M},
+                            {function, F},
+                            {arity, A},
+                            {line, Ln},
+                            {expression, Left},
+                            {expected, RightValue},
+                            {value, LeftValue}
+                        ]})
+                end
+            end}
+        end
+    ).
 
 %%%=====================================================================
 %%% Internal functions
@@ -49,30 +97,17 @@ options() ->
             []
     end.
 
-tests(Mod, AttrLn, CodeBlocks, ExtraErrInfo) when
+tests(Mod, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
-    is_list(CodeBlocks), is_list(ExtraErrInfo) ->
-    element(2, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
-        lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
+    is_list(CodeBlocks), is_function(Callback, 3) ->
+    lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
+        element(2, lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
             {LeftValue, NewBindings} = eval(Left, Bindings),
             {RightValue, []} = eval(Right, []),
-            Test = {Ln, fun() ->
-                case LeftValue =:= RightValue of
-                    true ->
-                        ok;
-                    false ->
-                        erlang:error({assertEqual, ExtraErrInfo ++ [
-                            {module, Mod},
-                            {line, Ln},
-                            {expression, Left},
-                            {expected, RightValue},
-                            {value, LeftValue}
-                        ]})
-                end
-            end},
+            Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
             {NewBindings, [Test | Acc1]}
-        end, {[], Acc}, code_block_asserts(CodeBlock, AttrLn + CBLn))
-    end, [], CodeBlocks)).
+        end, {[], Acc}, code_block_asserts(CodeBlock, AttrLn + CBLn)))
+    end, [], CodeBlocks).
 
 code_block_asserts(CodeBlock, Ln) ->
     asserts(chunks(lines(CodeBlock)), Ln, []).

@@ -29,14 +29,15 @@
 module_tests(Mod, ShouldTestModDoc, FunsOpts) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
+            Desc = iolist_to_binary(io_lib:format("module '~w'", [Mod])),
             case ShouldTestModDoc of
                 true ->
-                    {ok, [
+                    {ok, {Desc, lists:flatten([
                         moduledoc_attr_tests(Mod, Anno, Lang),
                         doc_attr_tests(Mod, Docs, FunsOpts)
-                    ]};
+                    ])}};
                 false ->
-                    {ok, doc_attr_tests(Mod, Docs, FunsOpts)}
+                    {ok, {Desc, doc_attr_tests(Mod, Docs, FunsOpts)}}
             end;
         {error, Reason} ->
             {error, Reason}
