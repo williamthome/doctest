@@ -35,7 +35,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
     tests(Mod, AttrLn, CodeBlocks,
         fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
             Desc = iolist_to_binary(
-                io_lib:format("-moduledoc:~p|~w", [AttrLn, Mod])
+                io_lib:format("-moduledoc | Ln ~p", [Ln])
             ),
             {Desc, Ln, fun() ->
                 case LeftValue =:= RightValue of
@@ -61,7 +61,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
     tests(M, AttrLn, CodeBlocks,
         fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
             Desc = iolist_to_binary(
-                io_lib:format("-doc:~p|~w:~w/~p", [AttrLn, M, F, A])
+                io_lib:format("-doc | Ln ~p", [Ln])
             ),
             {Desc, {M, F, A}, fun() ->
                 case LeftValue =:= RightValue of
