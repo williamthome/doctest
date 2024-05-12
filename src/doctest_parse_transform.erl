@@ -40,6 +40,7 @@ Just plug the header on your module:
 %%%=====================================================================
 
 parse_transform(Forms, _Opt) ->
+    ensure_modules_loaded(),
     % Parse docs and run tests
     Settings = settings(doctest_attrs(Forms), default_settings()),
     DocAttrs = filter_doc_attrs(Settings, doc_attrs(Forms)),
@@ -50,6 +51,12 @@ parse_transform(Forms, _Opt) ->
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
+
+ensure_modules_loaded() ->
+    [code:ensure_loaded(Mod) || Mod <- [
+        doctest_md,
+        doctest_eunit
+    ]].
 
 settings([Enabled | T], Settings) when is_boolean(Enabled) ->
     settings(T, Settings#settings{enabled = Enabled});
