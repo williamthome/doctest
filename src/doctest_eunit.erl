@@ -87,7 +87,7 @@ chunks(Parts) ->
             {match, [Left]} ->
                 [{left, Left} | Acc];
             nomatch ->
-                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\.*$">>, Opts) of
+                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\..*$">>, Opts) of
                     {match, [More]} ->
                         [{more, More} | Acc];
                     nomatch ->
