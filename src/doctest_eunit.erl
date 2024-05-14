@@ -32,7 +32,7 @@ test(Tests, Options) when is_list(Options) ->
     eunit:test(Tests, Options).
 
 moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
-    tests(Mod, AttrLn, CodeBlocks,
+    case catch tests(Mod, AttrLn, CodeBlocks,
         fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
             Desc = iolist_to_binary(
                 io_lib:format("-moduledoc | Ln ~p", [Ln])
@@ -55,10 +55,17 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
                 end
             end}
         end
-    ).
+    ) of
+        {ok, Tests} ->
+            Tests;
+        {error, Reason} ->
+            error({doctest, {moduledoc, Reason}}, [
+                Mod, AttrLn, CodeBlocks
+            ])
+    end.
 
 doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
-    tests(M, AttrLn, CodeBlocks,
+    case catch tests(M, AttrLn, CodeBlocks,
         fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
             Desc = iolist_to_binary(
                 io_lib:format("-doc | Ln ~p", [Ln])
@@ -83,7 +90,14 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
                 end
             end}
         end
-    ).
+    ) of
+        {ok, Tests} ->
+            Tests;
+        {error, Reason} ->
+            error({doctest, {doc, Reason}}, [
+                {M, F, A}, AttrLn, CodeBlocks
+            ])
+    end.
 
 %%%=====================================================================
 %%% Internal functions
@@ -100,15 +114,19 @@ options() ->
 tests(Mod, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
     is_list(CodeBlocks), is_function(Callback, 3) ->
-    lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
-        Asserts = doctest_md:code_block_asserts(CodeBlock, AttrLn + CBLn),
-        element(2, lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
-            {LeftValue, NewBindings} = eval(Left, Bindings),
-            {RightValue, []} = eval(Right, []),
-            Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
-            {NewBindings, [Test | Acc1]}
-        end, {[], Acc}, lists:reverse(Asserts)))
-    end, [], CodeBlocks).
+    {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
+        case doctest_md:code_block_asserts(CodeBlock, AttrLn + CBLn) of
+            {ok, Asserts} ->
+                element(2, lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
+                    {LeftValue, NewBindings} = eval(Left, Bindings),
+                    {RightValue, []} = eval(Right, []),
+                    Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
+                    {NewBindings, [Test | Acc1]}
+                end, {[], Acc}, lists:reverse(Asserts)));
+            {error, Reason} ->
+                throw({error, Reason})
+        end
+    end, [], CodeBlocks)}.
 
 eval(Bin, Bindings) ->
     {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),

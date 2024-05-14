@@ -18,8 +18,13 @@
 Module doc tags can also be tested.
 
 ```erlang
-1> foo:foo() =:= bar.
+1> foo:foo()
+.. =:= bar.
 false
+2> foo:foo()
+.. =:=
+.. foo.
+true
 ```
 """.
 -moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
