@@ -107,7 +107,7 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
             {RightValue, []} = eval(Right, []),
             Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
             {NewBindings, [Test | Acc1]}
-        end, {[], Acc}, Asserts))
+        end, {[], Acc}, lists:reverse(Asserts)))
     end, [], CodeBlocks).
 
 eval(Bin, Bindings) ->
