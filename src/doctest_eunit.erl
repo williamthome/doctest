@@ -110,26 +110,26 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
     end, [], CodeBlocks).
 
 code_block_asserts(CodeBlock, Ln) ->
-    asserts(chunks(lines(CodeBlock)), Ln, []).
+    asserts(chunks(lines(CodeBlock)), {Ln, Ln}, []).
 
 lines(CodeBlock) ->
     binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
 
 chunks(Parts) ->
     Opts = [{capture, all_but_first, binary}],
-    lists:foldl(fun(Part, Acc) ->
+    lists:map(fun(Part) ->
         case re:run(Part, <<"^[0-9]+>\\s+(.*?)\\.*$">>, Opts) of
             {match, [Left]} ->
-                [{left, Left} | Acc];
+                {left, Left};
             nomatch ->
-                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\..*$">>, Opts) of
+                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\.*$">>, Opts) of
                     {match, [More]} ->
-                        [{more, More} | Acc];
+                        {more, More};
                     nomatch ->
-                        [{right, Part} | Acc]
+                        {right, Part}
                 end
         end
-    end, [], Parts).
+    end, Parts).
 
 % TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
 %       1> ok.
@@ -137,13 +137,11 @@ chunks(Parts) ->
 %       And this should be wrong:
 %       9> error.
 %       8> error.
-asserts([{right, R}, {more, M}, {left, L} | T], Ln, Acc) ->
-    asserts(T, Ln+1, [{{<<L/binary, M/binary>>, R}, Ln} | Acc]);
-asserts([{right, R}, {more, MR}, {more, ML} | T], Ln, Acc) ->
-    asserts([{right, R}, {more, <<ML/binary, MR/binary>>} | T], Ln, Acc);
-asserts([{right, R}, {left, L} | T], Ln, Acc) ->
-    asserts(T, Ln+1, [{{L, R}, Ln} | Acc]);
-asserts([], _Ln, Acc) ->
+asserts([{left, L}, {more, M} | T], {Ln, NLn}, Acc) ->
+    asserts([{left, <<L/binary, M/binary>>} | T], {Ln, NLn+1}, Acc);
+asserts([{left, L}, {right, R} | T], {Ln, NLn}, Acc) ->
+    asserts(T, {NLn+2, NLn+2}, [{{L, R}, Ln} | Acc]);
+asserts([], _, Acc) ->
     Acc;
 % Code block is not a test, e.g:
 % foo() ->
