@@ -112,9 +112,9 @@ asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
 asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
     case check_left_index(N, I) of
         ok when T =:= [] ->
-            {ok, [{{L, R}, Ln} | Acc]};
+            {ok, [{{L, Ln}, {R, NLn+1}} | Acc]};
         ok ->
-            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{L, R}, Ln} | Acc]);
+            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{L, Ln}, {R, NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
             Received = iolist_to_binary([N, "> ", H]),
