@@ -103,7 +103,24 @@ add(A, B) ->
     A+B.
 ````
 
-> Note that the code is defined like the Erlang shell, starting with `N> `, where `N` is a number, and continues in multiple lines with `.. `. The result is a value without starting with those shell symbols.
+> Note that the code is defined like in the Erlang shell, starting the expression line from `1..N` and the `^([1-9][0-9]*)>\s` format, and continues in multiple lines with `..` and the format `^(\s*)\.\.\s`. The expression header and multiple lines must be aligned, for example:
+> ```erlang
+> % Valid
+> 1> foo.
+> foo
+> 2> foo
+> .. =:=
+> .. bar.
+> bar
+>
+> % Invalid
+> 1> foo.
+> foo
+> 200> foo % <- Must 2 (previous line + 1)
+>  .. =:=  % <- Must be aligned
+>   .. bar.
+> bar
+> ```
 
 Now, by running `rebar3 eunit`:
 ```shell
