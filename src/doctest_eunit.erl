@@ -101,53 +101,14 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
     is_list(CodeBlocks), is_function(Callback, 3) ->
     lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
+        Asserts = doctest_md:code_block_asserts(CodeBlock, AttrLn + CBLn),
         element(2, lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
             {LeftValue, NewBindings} = eval(Left, Bindings),
             {RightValue, []} = eval(Right, []),
             Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
             {NewBindings, [Test | Acc1]}
-        end, {[], Acc}, code_block_asserts(CodeBlock, AttrLn + CBLn)))
+        end, {[], Acc}, Asserts))
     end, [], CodeBlocks).
-
-code_block_asserts(CodeBlock, Ln) ->
-    asserts(chunks(lines(CodeBlock)), {Ln, Ln}, []).
-
-lines(CodeBlock) ->
-    binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
-
-chunks(Parts) ->
-    Opts = [{capture, all_but_first, binary}],
-    lists:map(fun(Part) ->
-        case re:run(Part, <<"^[0-9]+>\\s+(.*?)\\.*$">>, Opts) of
-            {match, [Left]} ->
-                {left, Left};
-            nomatch ->
-                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\.*$">>, Opts) of
-                    {match, [More]} ->
-                        {more, More};
-                    nomatch ->
-                        {right, Part}
-                end
-        end
-    end, Parts).
-
-% TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
-%       1> ok.
-%       2> ok.
-%       And this should be wrong:
-%       9> error.
-%       8> error.
-asserts([{left, L}, {more, M} | T], {Ln, NLn}, Acc) ->
-    asserts([{left, <<L/binary, M/binary>>} | T], {Ln, NLn+1}, Acc);
-asserts([{left, L}, {right, R} | T], {Ln, NLn}, Acc) ->
-    asserts(T, {NLn+2, NLn+2}, [{{L, R}, Ln} | Acc]);
-asserts([], _, Acc) ->
-    Acc;
-% Code block is not a test, e.g:
-% foo() ->
-%     bar.
-asserts(_, _, _) ->
-    [].
 
 eval(Bin, Bindings) ->
     {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
