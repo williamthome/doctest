@@ -124,8 +124,6 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
                 received => Received
             }}}
     end;
-asserts([], _, _, Acc) ->
-    {ok, Acc};
 % Code block is not a test, e.g:
 % foo() ->
 %     bar.
