@@ -101,55 +101,14 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
     is_list(CodeBlocks), is_function(Callback, 3) ->
     lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
+        Asserts = doctest_md:code_block_asserts(CodeBlock, AttrLn + CBLn),
         element(2, lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
             {LeftValue, NewBindings} = eval(Left, Bindings),
             {RightValue, []} = eval(Right, []),
             Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
             {NewBindings, [Test | Acc1]}
-        end, {[], Acc}, code_block_asserts(CodeBlock, AttrLn + CBLn)))
+        end, {[], Acc}, lists:reverse(Asserts)))
     end, [], CodeBlocks).
-
-code_block_asserts(CodeBlock, Ln) ->
-    asserts(chunks(lines(CodeBlock)), Ln, []).
-
-lines(CodeBlock) ->
-    binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
-
-chunks(Parts) ->
-    Opts = [{capture, all_but_first, binary}],
-    lists:foldl(fun(Part, Acc) ->
-        case re:run(Part, <<"^[0-9]+>\\s+(.*?)\\.*$">>, Opts) of
-            {match, [Left]} ->
-                [{left, Left} | Acc];
-            nomatch ->
-                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\..*$">>, Opts) of
-                    {match, [More]} ->
-                        [{more, More} | Acc];
-                    nomatch ->
-                        [{right, Part} | Acc]
-                end
-        end
-    end, [], Parts).
-
-% TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
-%       1> ok.
-%       2> ok.
-%       And this should be wrong:
-%       9> error.
-%       8> error.
-asserts([{right, R}, {more, M}, {left, L} | T], Ln, Acc) ->
-    asserts(T, Ln+1, [{{<<L/binary, M/binary>>, R}, Ln} | Acc]);
-asserts([{right, R}, {more, MR}, {more, ML} | T], Ln, Acc) ->
-    asserts([{right, R}, {more, <<ML/binary, MR/binary>>} | T], Ln, Acc);
-asserts([{right, R}, {left, L} | T], Ln, Acc) ->
-    asserts(T, Ln+1, [{{L, R}, Ln} | Acc]);
-asserts([], _Ln, Acc) ->
-    Acc;
-% Code block is not a test, e.g:
-% foo() ->
-%     bar.
-asserts(_, _, _) ->
-    [].
 
 eval(Bin, Bindings) ->
     {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
