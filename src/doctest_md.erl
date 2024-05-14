@@ -44,7 +44,12 @@ code_blocks(Markdown) when is_binary(Markdown) ->
     end.
 
 code_block_asserts(CodeBlock, Ln) ->
-    asserts(chunks(split_lines(CodeBlock)), {Ln, Ln}, []).
+    case chunks(split_lines(CodeBlock)) of
+        [] ->
+            [];
+        [H|_] = Chunks ->
+            asserts(Chunks, {H, 1}, {Ln, Ln}, [])
+    end.
 
 %%%=====================================================================
 %%% Internal functions
@@ -68,16 +73,17 @@ parse_loc(<<>>, {Ln, Col}) ->
 split_lines(CodeBlock) ->
     binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
 
+% TODO: Allow comments
 chunks(Parts) ->
     Opts = [{capture, all_but_first, binary}],
     lists:map(fun(Part) ->
-        case re:run(Part, <<"^[0-9]+>\\s+(.*?)\\.*$">>, Opts) of
-            {match, [Left]} ->
-                {left, Left};
+        case re:run(Part, <<"^([1-9][0-9]*)>\\s(.*?)\\.*$">>, Opts) of
+            {match, [N, Left]} ->
+                {left, {N, Left}};
             nomatch ->
-                case re:run(Part, <<"^\\.\\.\\s+(.*?)\\.*$">>, Opts) of
-                    {match, [More]} ->
-                        {more, More};
+                case re:run(Part, <<"^(\\s*)\\.\\.\\s(.*?)\\.*$">>, Opts) of
+                    {match, [Ws, More]} ->
+                        {more, {Ws, More}};
                     nomatch ->
                         {right, Part}
                 end
@@ -90,14 +96,54 @@ chunks(Parts) ->
 %       And this should be wrong:
 %       9> error.
 %       8> error.
-asserts([{left, L}, {more, M} | T], {Ln, NLn}, Acc) ->
-    asserts([{left, <<L/binary, M/binary>>} | T], {Ln, NLn+1}, Acc);
-asserts([{left, L}, {right, R} | T], {Ln, NLn}, Acc) ->
-    asserts(T, {NLn+2, NLn+2}, [{{L, R}, Ln} | Acc]);
-asserts([], _, Acc) ->
-    Acc;
+asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
+    case check_more_format(Ws, N) of
+        ok ->
+            asserts([{left, {N, <<L/binary, M/binary>>}} | T], HI, {Ln, NLn+1}, Acc);
+        {error, {EWs, RWs}} ->
+            Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), "..> ", M]),
+            Received = iolist_to_binary([lists:duplicate(RWs, "\s"), "..> ", M]),
+            {error, {format, #{
+                line => NLn+1,
+                expected => Expected,
+                received => Received
+            }}}
+    end;
+asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
+    case check_left_index(N, I) of
+        ok when T =:= [] ->
+            {ok, [{{L, R}, Ln} | Acc]};
+        ok ->
+            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{L, R}, Ln} | Acc]);
+        error ->
+            Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
+            Received = iolist_to_binary([N, "> ", H]),
+            {error, {format, #{
+                line => Ln,
+                expected => Expected,
+                received => Received
+            }}}
+    end;
 % Code block is not a test, e.g:
 % foo() ->
 %     bar.
-asserts(_, _, _) ->
-    [].
+asserts(_, _, _, _) ->
+    {ok, []}.
+
+check_more_format(Ws, Ln) ->
+    LnSz = max(0, byte_size(Ln) - 1),
+    WsSz = byte_size(Ws),
+    case WsSz =:= LnSz of
+        true ->
+            ok;
+        false ->
+            {error, {LnSz, WsSz}}
+    end.
+
+check_left_index(N, Ln) ->
+    case catch binary_to_integer(N) =:= Ln of
+        true ->
+            ok;
+        _ ->
+            error
+    end.
