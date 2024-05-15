@@ -131,17 +131,13 @@ test_info(#{desc := <<"application \"", _Rest/binary>>} = D) ->
 test_info(#{desc := undefined} = D) ->
     D#{tag => ~"unknown", file => none}.
 
-guess_ln(#{source := {M, F, A}}) ->
-    guess_ln({M, F, A});
 guess_ln({M, F, A}) ->
     case fun_line(mod_ast(M), F, A) of
         {ok, Ln} ->
             Ln;
         error ->
             0
-    end;
-guess_ln(_) ->
-    0.
+    end.
 
 mod_ast(Mod) ->
     {ok, {Mod, Chunks}} = beam_lib:chunks(code:which(Mod), [abstract_code]),
