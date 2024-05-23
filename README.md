@@ -50,19 +50,22 @@ foo() ->
 Running it via `rebar3 as test shell`:
 ```erlang
 1> doctest:module(foo).
-.F
-Failures:
+ PASS  ./test/support/foo.erl:6 -moduledoc
+ FAIL  ./test/support/foo.erl:15 -doc
 
-  1) foo:foo/0: -doc | Ln 13
-     Failure/Error: ?assertEqual(foo, foo:foo())
-       expected: foo
-            got: bar
-     %% eunit_proc.erl:583:in `eunit_proc:run_group/2`
-     Output:
-     Output:
+    ❌ assertEqual
 
-Finished in 0.010 seconds
-2 tests, 1 failures
+    Expected: foo
+    Received: bar
+
+    │
+ 15 │ 1> foo:foo().
+ 16 │ foo
+    │
+    └── at ./test/support/foo.erl:15
+
+Tests: 1 failed, 1 passed, 2 total
+ Time: 0.007 seconds
 ```
 
 #### Options
@@ -123,9 +126,13 @@ bar
 ```
 
 Now, by running `rebar3 eunit`:
-```shell
-Finished in 0.018 seconds
-2 tests, 0 failures
+```erlang
+ PASS  ./src/math.erl:29 -doc
+ PASS  ./src/math.erl:31 -doc
+
+
+Tests: 2 passed, 2 total
+ Time: 0.008 seconds
 ```
 
 By changing the first test to:
@@ -135,19 +142,25 @@ By changing the first test to:
 ```
 
 And running `rebar3 eunit` again:
-```shell
-Failures:
+```erlang
+ FAIL  ./src/math.erl:15 -doc
 
-  1) math:add/2: -doc | Ln 15
-     Failure/Error: ?assertEqual(1, math:add(1, 1))
-       expected: 1
-            got: 2
-     %% eunit_proc.erl:583:in `eunit_proc:run_group/2`
-     Output:
-     Output:
+    ❌ assertEqual
 
-Finished in 0.010 seconds
-2 tests, 1 failures
+    Expected: 1
+    Received: 2
+
+    │
+ 15 │ 1> math:add(1, 1).
+ 16 │ 1
+    │
+    └── at ./src/math.erl:15
+
+ PASS  ./src/math.erl:17 -doc
+
+
+Tests: 1 failed, 1 passed, 2 total
+ Time: 0.007 seconds
 ```
 
 #### Options
