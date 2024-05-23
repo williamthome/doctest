@@ -296,7 +296,7 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
         ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
         Range,
         ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
-        ~"\s", Pd, ~"\s", {~"└── at ", {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, bright_black}},
+        ~"\s", Pd, ~"\s", {~"└── at ", {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}},
         ~"\n"
     ].
 
@@ -321,7 +321,7 @@ print_test({ErrReason, Info}, Test, _Stack) ->
         ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
         ~"\s", {{to_bin, Ln}, {fg, red}}, ~"\s", {~"│", {fg, bright_black}}, ~"\s", LnExpr, ~"\n",
         ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
-        ~"\s", Pd, ~"\s", {~"└── at ", {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, bright_black}},
+        ~"\s", Pd, ~"\s", {~"└── at ", {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
         ~"\n"
     ].
 
