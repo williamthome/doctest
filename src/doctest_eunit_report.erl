@@ -110,8 +110,7 @@ test_info(#{desc := <<"-doc ", Title/binary>>} = D) ->
     [Filename, LnBin] = binary:split(Title, <<":">>),
     Ln = binary_to_integer(LnBin),
     D#{tag => ~"-doc", title => Title, file => Filename, file_ln => Ln};
-test_info(#{desc := <<"module '", _Rest/binary>>} = D) ->
-    {M, F, A} = maps:get(source, D),
+test_info(#{source := {M, F, A}} = D) when is_atom(M), is_atom(F), is_integer(A) ->
     Ln = guess_ln({M, F, A}),
     Title = doctest_eunit:test_title(M, Ln),
     [Filename, _LnBin] = binary:split(Title, <<":">>),
