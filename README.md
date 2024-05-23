@@ -119,7 +119,7 @@ bar
 % Invalid
 1> foo.
 foo
-200> foo % <- Must 2 (previous line + 1)
+200> foo % <- Must be 2 (previous line + 1)
  .. =:=  % <- Must be aligned
   .. bar.
 bar
