@@ -106,7 +106,7 @@ add(A, B) ->
     A+B.
 ````
 
-Note that the code is defined like in the Erlang shell, starting the expression line from `1..N` and the `^([1-9][0-9]*)>\s` format, and continues in multiple lines with `..` and the format `^(\s*)\.\.\s`. The expression header and multiple lines must be aligned, for example:
+Note that the code is defined like in the Erlang shell, starting the expression line from `1..N` and incrementing it by one for every test, and continues in multiple lines with `..` and aligning it with the code of the previous line, for example:
 ```erlang
 % Valid
 1> foo.
@@ -119,7 +119,7 @@ bar
 % Invalid
 1> foo.
 foo
-200> foo % <- Must 2 (previous line + 1)
+200> foo % <- Must be 2 (previous line + 1)
  .. =:=  % <- Must be aligned
   .. bar.
 bar
