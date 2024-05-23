@@ -219,6 +219,18 @@ By defining `resolve` as the EUnit options, `doctest` will try to resolve the op
 > {eunit_opts, [no_tty, {report, {my_reporter, Opts}}]}.
 > ```
 
+#### Doctest EUnit Reporter
+
+`doctest` has a built-in EUnit reporter called `doctest_eunit_report` for better visualization of the tests. It can be used by defining the below option in the `rebar.config` of your project:
+```erlang
+{eunit_opts, [no_tty, {report, {doctest_eunit_report, []}}]}.
+```
+
+> Currently, no options are expected/provided by the reporter.
+
+An example of the `doctest_eunit_report` output:
+![doctest_eunit_report](/assets/reporter-go-to-definition.gif)
+
 ## TODO
 
 - [ ] More tests

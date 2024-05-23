@@ -17,7 +17,10 @@
 -moduledoc false.
 
 % API functions
--export([test/1, test/2, moduledoc_tests/3, doc_tests/3]).
+-export([test/1, test/2]).
+
+% Support functions
+-export([moduledoc_tests/3, doc_tests/3, test_title/2]).
 
 %%%=====================================================================
 %%% API functions
@@ -27,27 +30,32 @@ test(Tests) ->
     test(Tests, resolve).
 
 test(Tests, resolve) ->
+    % eunit:test(Tests, [no_tty, {report, {doctest_eunit_report, []}}]);
     eunit:test(Tests, options());
 test(Tests, Options) when is_list(Options) ->
     eunit:test(Tests, Options).
 
+%%%=====================================================================
+%%% Support functions
+%%%=====================================================================
+
 moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
     case catch tests(Mod, AttrLn, CodeBlocks,
-        fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
-            Desc = iolist_to_binary(
-                io_lib:format("-moduledoc | Ln ~p", [Ln])
-            ),
-            {Desc, Ln, fun() ->
+        fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
+            {desc("-moduledoc", Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
                 case LeftValue =:= RightValue of
                     true ->
                         ok;
                     false ->
                         erlang:error({assertEqual, [
-                            {doctest, [
-                                {attribute, moduledoc}
-                            ]},
+                            {doctest, #{
+                                attribute => moduledoc,
+                                left => {Left, LeftLn, LeftValue},
+                                right => {Right, RightLn, RightValue},
+                                ln_range => {LeftLn, RightLn}
+                            }},
                             {module, Mod},
-                            {line, Ln},
+                            {line, LeftLn},
                             {expression, Left},
                             {expected, RightValue},
                             {value, LeftValue}
@@ -66,23 +74,23 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
 
 doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
     case catch tests(M, AttrLn, CodeBlocks,
-        fun(Ln, {Left, LeftValue}, {_Right, RightValue}) ->
-            Desc = iolist_to_binary(
-                io_lib:format("-doc | Ln ~p", [Ln])
-            ),
-            {Desc, {M, F, A}, fun() ->
+        fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
+            {desc("-doc", M, LeftLn), {M, F, A}, fun() ->
                 case LeftValue =:= RightValue of
                     true ->
                         ok;
                     false ->
                         erlang:error({assertEqual, [
-                            {doctest, [
-                                {attribute, doc}
-                            ]},
+                            {doctest, #{
+                                attribute => doc,
+                                left => {Left, LeftLn, LeftValue},
+                                right => {Right, RightLn, RightValue},
+                                ln_range => {LeftLn, RightLn}
+                            }},
                             {module, M},
                             {function, F},
                             {arity, A},
-                            {line, Ln},
+                            {line, LeftLn},
                             {expression, Left},
                             {expected, RightValue},
                             {value, LeftValue}
@@ -99,6 +107,16 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
             ])
     end.
 
+test_title(Mod, Ln) ->
+    Filename = case proplists:lookup(source, Mod:module_info(compile)) of
+        {source, Src} ->
+            Src;
+        none ->
+            code:which(Mod)
+    end,
+    [[], Rel] = string:split(Filename, filename:absname("./")),
+    iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln])).
+
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
@@ -113,20 +131,26 @@ options() ->
 
 tests(Mod, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
-    is_list(CodeBlocks), is_function(Callback, 3) ->
+    is_list(CodeBlocks), is_function(Callback, 2) ->
     {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
         case doctest_md:code_block_asserts(CodeBlock, AttrLn + CBLn) of
             {ok, Asserts} ->
-                element(2, lists:foldl(fun({{Left, Right}, Ln}, {Bindings, Acc1}) ->
+                lists:reverse(element(2, lists:foldl(fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
                     {LeftValue, NewBindings} = eval(Left, Bindings),
                     {RightValue, []} = eval(Right, []),
-                    Test = Callback(Ln, {Left, LeftValue}, {Right, RightValue}),
+                    Test = Callback(
+                        {Left, LeftLn, LeftValue},
+                        {Right, RightLn, RightValue}
+                    ),
                     {NewBindings, [Test | Acc1]}
-                end, {[], Acc}, lists:reverse(Asserts)));
+                end, {[], Acc}, lists:reverse(Asserts))));
             {error, Reason} ->
                 throw({error, Reason})
         end
     end, [], CodeBlocks)}.
+
+desc(Tag, Mod, Ln) ->
+    iolist_to_binary(io_lib:format("~s\s~s", [Tag, test_title(Mod, Ln)])).
 
 eval(Bin, Bindings) ->
     {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
