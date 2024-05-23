@@ -66,10 +66,10 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
     ) of
         {ok, Tests} ->
             Tests;
-        {error, Reason} ->
-            error({doctest, {moduledoc, Reason}}, [
-                Mod, AttrLn, CodeBlocks
-            ])
+        {error, {format, Info}} ->
+            error({doctest, {moduledoc_format, Info#{
+                module => Mod
+            }}}, [Mod, AttrLn, CodeBlocks])
     end.
 
 doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
@@ -101,10 +101,12 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
     ) of
         {ok, Tests} ->
             Tests;
-        {error, Reason} ->
-            error({doctest, {doc, Reason}}, [
-                {M, F, A}, AttrLn, CodeBlocks
-            ])
+        {error, {format, Info}} ->
+            error({doctest, {doc_format, Info#{
+                module => M,
+                function => F,
+                arity => A
+            }}}, [{M, F, A}, AttrLn, CodeBlocks])
     end.
 
 test_title(Mod, Ln) ->

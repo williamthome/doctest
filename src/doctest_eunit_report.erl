@@ -263,6 +263,8 @@ print_output(#{output := Out}) ->
             ])
     end.
 
+format_error({error, {doctest, Error}, Stack}, _Test) ->
+    erlang:raise(error, {doctest, Error}, Stack);
 format_error({error, {assertEqual, Info}, Stack}, Test) ->
     case proplists:lookup(doctest, Info) of
         {doctest, DocTest} ->

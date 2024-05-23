@@ -90,12 +90,6 @@ chunks(Parts) ->
         end
     end, Parts).
 
-% TODO: Maybe check for the correct line sequence by starting from 1, e.g.:
-%       1> ok.
-%       2> ok.
-%       And this should be wrong:
-%       9> error.
-%       8> error.
 asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
     case check_more_format(Ws, N) of
         ok ->
