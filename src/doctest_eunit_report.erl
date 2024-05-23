@@ -300,8 +300,19 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
     ].
 
 print_test({ErrReason, Info}, Test, _Stack) ->
-    Left = proplists:get_value(expected, Info),
-    Right = proplists:get_value(value, Info),
+    Left = proplists:get_value(expected, Info,
+                proplists:get_value(pattern, Info)),
+    Right = proplists:get_value(value, Info,
+                proplists:get_value(unexpected_success, Info,
+                    proplists:get_value(unexpected_exception, Info))),
+
+    LeftFmt = case proplists:is_defined(pattern, Info) of
+        true ->
+            "~ts";
+        false ->
+            "~tp"
+    end,
+    RightFmt = "~tP",
 
     Filename = maps:get(file, Test),
     {line, Ln} = proplists:lookup(line, Info),
@@ -313,8 +324,8 @@ print_test({ErrReason, Info}, Test, _Stack) ->
     [
         ~"\s", Pd, ~"\s❌\s", {{to_bin, ErrReason}, {fg, bright_black}}, ~"\n",
         ~"\n",
-        ~"\s", Pd, ~"\sExpected: ", {{fmt, "~tp", [Left]}, {fg, green}}, ~"\n",
-        ~"\s", Pd, ~"\sReceived: ", {{fmt, "~tP", [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, ~"\n",
+        ~"\s", Pd, ~"\sExpected: ", {{fmt, LeftFmt, [Left]}, {fg, green}}, ~"\n",
+        ~"\s", Pd, ~"\sReceived: ", {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, ~"\n",
         ~"\n",
         format_pre_code(Test, Pd),
         ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
