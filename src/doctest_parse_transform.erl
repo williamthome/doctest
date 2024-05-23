@@ -159,8 +159,8 @@ tests(Forms, DocAttrs) ->
                             moduledoc ->
                                 [doctest_eunit:moduledoc_tests(Mod, MarkdownLn, CodeBlocks)
                                 | Acc];
-                            {doc, {function, {F, A, Ln}}} ->
-                                [doctest_eunit:doc_tests({Mod, F, A}, Ln, CodeBlocks)
+                            {doc, {function, {F, A, _Ln}}} ->
+                                [doctest_eunit:doc_tests({Mod, F, A}, MarkdownLn, CodeBlocks)
                                 | Acc]
                         end;
                     none ->
