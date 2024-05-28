@@ -19,9 +19,31 @@ OTP >= 27.
 
 ## Usage
 
-Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl), but only exported functions are tested.
+Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl).
+
+The test code is defined like in the Erlang shell, starting the expression line from `1..N` and incrementing it by one for every test, and continues in multiple lines with `..` and aligning it with the code of the previous line, for example:
+```erlang
+% Valid
+1> foo.
+foo
+2> foo
+.. =:=
+.. bar.
+bar
+
+% Invalid
+1> foo.
+foo
+200> foo % <- Must be 2 (previous line + 1)
+ .. =:=  % <- Must be aligned
+  .. bar.
+bar
+```
 
 ### Testing via doctest:module/1,2 function
+
+> **Note**
+> Only exported functions are testable.
 
 Take this module:
 ````erlang
@@ -77,6 +99,9 @@ Options can be provided when using the `doctest:module/2` function. The availabl
 
 ### Testing via doctest header
 
+> **Note**
+> All functions are testable, exported, and non-exported.
+
 Take this module:
 ````erlang
 -module(math).
@@ -105,25 +130,6 @@ _Example_:
 add(A, B) ->
     A+B.
 ````
-
-Note that the code is defined like in the Erlang shell, starting the expression line from `1..N` and incrementing it by one for every test, and continues in multiple lines with `..` and aligning it with the code of the previous line, for example:
-```erlang
-% Valid
-1> foo.
-foo
-2> foo
-.. =:=
-.. bar.
-bar
-
-% Invalid
-1> foo.
-foo
-200> foo % <- Must be 2 (previous line + 1)
- .. =:=  % <- Must be aligned
-  .. bar.
-bar
-```
 
 Now, by running `rebar3 eunit`:
 ```erlang
