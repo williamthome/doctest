@@ -13,50 +13,88 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(doctest_md).
+-module(doctest_extract).
 -moduledoc false.
 
 % API functions
--export([code_blocks/1, code_block_asserts/2]).
+-export([extract_module_tests/4, code_blocks/2]).
 
--define(CODE_BLOCK_RE,
-    "(?ms)^(```[`]*)erlang\\s*\\n" % ```erlang
-    "(.*?)"                        %  <erlang-code>
-    "(?:\\n^(\\1)(\\s+|\\n|$))"    %  ```
-).
+% Support functions
+-export([default_extractor/0, code_block_asserts/2, keep_fun/2]).
+
+-callback extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) -> Result when
+          Mod :: module(),
+          ShouldTestModDoc :: boolean(),
+          FunsOpts :: boolean() | [{FunName, FunArity}],
+          FunName :: atom(),
+          FunArity :: arity(),
+          Result :: {ok, Tests} | {error, term()},
+          Tests :: list().
+
+-callback code_blocks(binary()) -> code_blocks().
+
+-type code_blocks() :: [{binary(), location()}] | none.
+-type location() :: {Ln :: pos_integer(), Col :: pos_integer()}.
+
+% Check OTP version.
+-include("doctest_otp_check.hrl").
 
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
-% TODO: Check how to use shell_docs_markdown:parse_md/1.
-%       It can simplify the capture of the code blocks,
-%       but it's only available since OTP-27-rc3.
-code_blocks(Markdown) when is_binary(Markdown) ->
-    case re:run(Markdown, ?CODE_BLOCK_RE, [
-        global, {capture, all_but_first, index}
-    ]) of
+extract_module_tests(Extractor, Mod, ShouldTestModDoc, FunsOpts) ->
+    case Extractor:extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) of
+        {ok, Tests} ->
+            Desc = iolist_to_binary(io_lib:format("module '~w'", [Mod])),
+            {ok, {Desc, Tests}};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+code_blocks(Doc, RE) when is_binary(Doc) ->
+    case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of
         {match, Groups} ->
-            {ok, [{binary_part(Markdown, Pos, Len), loc(Markdown, Pos)}
+            {ok, [{binary_part(Doc, Pos, Len), loc(Doc, Pos)}
                  || [_, {Pos, Len}, _, _] <- Groups]};
         nomatch ->
             none
     end.
 
-code_block_asserts(CodeBlock, Ln) ->
+%%%=====================================================================
+%%% Support functions
+%%%=====================================================================
+
+-if(?DOC_ATTRS_SUPPORTED).
+default_extractor() ->
+    doctest_markdown.
+-else.
+default_extractor() ->
+    doctest_comment.
+-endif.
+
+code_block_asserts(CodeBlock, InitLn) ->
     case chunks(split_lines(CodeBlock)) of
         [] ->
             [];
         [H|_] = Chunks ->
-            asserts(Chunks, {H, 1}, {Ln, Ln}, [])
+            asserts(Chunks, {H, 1}, {InitLn, InitLn}, [])
+    end.
+
+keep_fun(Fun, Opts) ->
+    case Opts of
+        KeepAll when is_boolean(KeepAll) ->
+            KeepAll;
+        Funs when is_list(Funs) ->
+            lists:member(Fun, Funs)
     end.
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
 
-loc(Markdown, Pos) ->
-    Pre = binary_part(Markdown, 0, Pos),
+loc(Doc, Pos) ->
+    Pre = binary_part(Doc, 0, Pos),
     parse_loc(Pre, {1, 1}).
 
 parse_loc(<<$\r, $\n, Rest/binary>>, {Ln, _Col}) ->

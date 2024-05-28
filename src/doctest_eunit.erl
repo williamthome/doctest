@@ -30,7 +30,6 @@ test(Tests) ->
     test(Tests, resolve).
 
 test(Tests, resolve) ->
-    % eunit:test(Tests, [no_tty, {report, {doctest_eunit_report, []}}]);
     eunit:test(Tests, options());
 test(Tests, Options) when is_list(Options) ->
     eunit:test(Tests, Options).
@@ -69,7 +68,20 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
         {error, {format, Info}} ->
             error({doctest, {moduledoc_format, Info#{
                 module => Mod
-            }}}, [Mod, AttrLn, CodeBlocks])
+            }}}, [Mod, AttrLn, CodeBlocks]);
+        {error, {eval, Expr, Bindings, Stacktrace}} ->
+            error({doctest, {moduledoc_eval, #{
+                module => Mod,
+                expression => Expr,
+                bindings => Bindings,
+                message => "Make sure to call Mod:Fun when testing "
+                           "expressions via doctest:module"
+            }}}, [Mod, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    cause => Stacktrace,
+                    module => Mod
+                }}
+            ])
     end.
 
 doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
@@ -106,16 +118,27 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
                 module => M,
                 function => F,
                 arity => A
-            }}}, [{M, F, A}, AttrLn, CodeBlocks])
+            }}}, [{M, F, A}, AttrLn, CodeBlocks]);
+        {error, {eval, Expr, Bindings, Stacktrace}} ->
+            error({doctest, {doc_eval, #{
+                module => M,
+                function => F,
+                arity => A,
+                expression => Expr,
+                bindings => Bindings,
+                message => "Make sure to call Mod:Fun when testing "
+                           "expressions via doctest:module"
+            }}}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    cause => Stacktrace,
+                    module => M,
+                    function => F
+                }}
+            ])
     end.
 
 test_title(Mod, Ln) ->
-    Filename = case proplists:lookup(source, Mod:module_info(compile)) of
-        {source, Src} ->
-            Src;
-        none ->
-            code:which(Mod)
-    end,
+    Filename = proplists:get_value(source, Mod:module_info(compile), code:which(Mod)),
     [[], Rel] = string:split(Filename, filename:absname("./")),
     iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln])).
 
@@ -135,10 +158,17 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
     is_list(CodeBlocks), is_function(Callback, 2) ->
     {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
-        case doctest_md:code_block_asserts(CodeBlock, AttrLn + CBLn) of
+        case doctest_extract:code_block_asserts(CodeBlock, AttrLn + CBLn) of
             {ok, Asserts} ->
                 lists:reverse(element(2, lists:foldl(fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
-                    {LeftValue, NewBindings} = eval(Left, Bindings),
+                    {LeftValue, NewBindings} =
+                        try eval(Left, Bindings)
+                        catch
+                            error:undef:Stacktrace ->
+                                throw({error, {eval, Left, Bindings, Stacktrace}});
+                            Class:Reason:Stacktrace ->
+                                erlang:raise(Class, Reason, Stacktrace)
+                        end,
                     {RightValue, []} = eval(Right, []),
                     Test = Callback(
                         {Left, LeftLn, LeftValue},

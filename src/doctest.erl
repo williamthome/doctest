@@ -20,15 +20,14 @@ Provides `module/1` and `module/2` to test doc attributes.
 -moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
--export([module/1, module/2]).
-
-% Check OTP version >= 27.
--include("doctest_otp_check.hrl").
+-export([module/1, module/2, module/3]).
 
 -type options() :: #{
     moduledoc => boolean(),
     funs => boolean() | [{atom(), arity()}],
-    eunit => resolve | [term()]
+    eunit => resolve | [term()],
+    % TODO: (do only available for OTP >= 27)
+    comments => boolean()
 }.
 -type test_result() :: ok | error | {error, term()}.
 
@@ -37,18 +36,33 @@ Provides `module/1` and `module/2` to test doc attributes.
 %%%=====================================================================
 
 -doc #{ equiv => module(Mod, #{}) }.
--spec module(module()) -> test_result().
+-spec module(Mod) -> Result when
+      Mod :: module(),
+      Result :: test_result().
 
 module(Mod) ->
     module(Mod, #{}).
 
--spec module(module(), options()) -> test_result().
+-doc #{ equiv => module(doctest_extract:default_extractor(), Mod, Opts) }.
+-spec module(Mod, Opts) -> Result when
+      Mod :: module(),
+      Opts :: options(),
+      Result :: test_result().
 
-module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
+module(Mod, Opts) ->
+    module(doctest_extract:default_extractor(), Mod, Opts).
+
+-spec module(Extractor, Mod, Opts) -> Result when
+      Extractor :: module(),
+      Mod :: module(),
+      Opts :: options(),
+      Result :: test_result().
+
+module(Extractor, Mod, Opts) when is_atom(Mod), is_map(Opts) ->
     Env = application:get_all_env(doctest),
     ShouldTestModDoc = maps:get(moduledoc, Opts, proplists:get_value(moduledoc, Env, true)),
     FunsOpts = maps:get(funs, Opts, proplists:get_value(funs, Env, true)),
-    case doctest_parse:module_tests(Mod, ShouldTestModDoc, FunsOpts) of
+    case doctest_extract:extract_module_tests(Extractor, Mod, ShouldTestModDoc, FunsOpts) of
         {ok, Tests} ->
             EunitOpts = maps:get(eunit, Opts, proplists:get_value(eunit, Env, resolve)),
             doctest_eunit:test(Tests, EunitOpts);
