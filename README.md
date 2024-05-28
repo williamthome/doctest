@@ -19,9 +19,12 @@ OTP >= 27.
 
 ## Usage
 
-Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl), but only exported functions are tested.
+Tests run via the `doctest:module/1,2` function or on modules that include the [doctest header](/include/doctest.hrl).
 
 ### Testing via doctest:module/1,2 function
+
+> **Note**
+> Only exported functions are testable.
 
 Take this module:
 ````erlang
@@ -76,6 +79,9 @@ Options can be provided when using the `doctest:module/2` function. The availabl
 - `eunit` :: `resolve | term()`: set [EUnit options](#eunit-options)
 
 ### Testing via doctest header
+
+> **Note**
+> All functions are testable, exported, and non-exported.
 
 Take this module:
 ````erlang
