@@ -106,9 +106,9 @@ test_desc(Mod) ->
     iolist_to_binary(io_lib:format("module '~w'", [Mod])).
 
 all_test_cases(Extractors, Args, Opts) ->
-    lists:flatten(lists:map(fun(Extractor) ->
+    sort_test_cases(lists:flatten(lists:map(fun(Extractor) ->
         test_cases(Extractor, Extractor:chunks(Args), Opts)
-    end, Extractors)).
+    end, Extractors))).
 
 test_cases(Extractor, Chunks, Opts) ->
     lists:filtermap(fun({Kind, Ln, Doc}) ->
@@ -116,14 +116,14 @@ test_cases(Extractor, Chunks, Opts) ->
             {{ok, CodeBlocks}, {doc, {M, F, A}}} ->
                 case should_test_doc(Opts, {F, A}) of
                     true ->
-                        {true, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks)};
+                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks)}};
                     false ->
                         false
                 end;
             {{ok, CodeBlocks}, {moduledoc, M}} ->
                 case should_test_moduledoc(Opts) of
                     true ->
-                        {true, doctest_eunit:moduledoc_tests(M, Ln, CodeBlocks)};
+                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Ln, CodeBlocks)}};
                     false ->
                         false
                 end;
@@ -131,6 +131,11 @@ test_cases(Extractor, Chunks, Opts) ->
                 false
         end
     end, Chunks).
+
+sort_test_cases(TestCases) ->
+    lists:map(fun({_Ln, TestCase}) ->
+        TestCase
+    end, lists:keysort(1, TestCases)).
 
 should_test_moduledoc(#{moduledoc := true}) ->
     true;
