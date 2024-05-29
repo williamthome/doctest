@@ -26,9 +26,6 @@
     "(?:\\n^(\\1)(\\s+|\\n|$))"    % ```
 ).
 
-% Contains the parse_transform settings record.
--include("doctest_parse_transform.hrl").
-
 % Contains the docs_v1 record.
 -include_lib("kernel/include/eep48.hrl").
 
@@ -61,7 +58,7 @@ code_blocks(Markdown) ->
 moduledoc_chunk(Mod, Anno, Lang) ->
     case unwrap(Lang) of
         {ok, Doc} ->
-            {ok, {{module_doc, Mod}, erl_anno:line(Anno), Doc}};
+            {ok, {{moduledoc, Mod}, erl_anno:line(Anno), Doc}};
         none ->
             none
     end.

@@ -17,11 +17,9 @@
 -moduledoc false.
 
 % API functions
--export([extract_module_tests/4, code_blocks/2]).
+-export([module_tests/3, forms_tests/3, code_blocks/2, default_extractors/0]).
 
-% Support functions
--export([default_extractor/0, code_block_asserts/2, keep_fun/2]).
-
+% TODO: Fix callbacks
 % -callback extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) -> Result when
 %           Mod :: module(),
 %           ShouldTestModDoc :: boolean(),
@@ -36,21 +34,32 @@
 -type code_blocks() :: [{binary(), location()}] | none.
 -type location() :: {Ln :: pos_integer(), Col :: pos_integer()}.
 
-% Check OTP version.
--include("doctest_otp_check.hrl").
+-ifdef(OTP_RELEASE).
+    -if(?OTP_RELEASE < 27).
+        -define(MARKDOWN_SUPPORTED, false).
+    -else.
+        -define(MARKDOWN_SUPPORTED, true).
+    -endif.
+-else.
+    -define(MARKDOWN_SUPPORTED, false).
+-endif.
 
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
-extract_module_tests(Extractor, Mod, ShouldTestModDoc, FunsOpts) ->
-    case Extractor:extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) of
-        {ok, Tests} ->
-            Desc = iolist_to_binary(io_lib:format("module '~w'", [Mod])),
-            {ok, {Desc, Tests}};
-        {error, Reason} ->
-            {error, Reason}
-    end.
+module_tests(Mod, Extractors, Opts) when is_atom(Mod), is_list(Extractors) ->
+    forms_tests(module_forms(Mod), Extractors, Opts).
+
+forms_tests(Forms, Extractors, Opts) when is_list(Forms), is_list(Extractors) ->
+    {ok, Mod, Bin} = compile:forms(Forms, [
+        binary,
+        debug_info,
+        {i, "eunit/include/eunit.hrl"}
+    ]),
+    {source, Filename} = proplists:lookup(source, Mod:module_info(compile)),
+    ExtractorArgs = {Mod, Bin, Filename, Forms},
+    {test_desc(Mod), all_test_cases(Extractors, ExtractorArgs, Opts)}.
 
 code_blocks(Doc, RE) when is_binary(Doc) ->
     case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of
@@ -61,37 +70,73 @@ code_blocks(Doc, RE) when is_binary(Doc) ->
             none
     end.
 
-%%%=====================================================================
-%%% Support functions
-%%%=====================================================================
-
--if(?DOC_ATTRS_SUPPORTED).
-default_extractor() ->
-    doctest_markdown.
+-if(?MARKDOWN_SUPPORTED).
+default_extractors() ->
+    [doctest_markdown].
 -else.
-default_extractor() ->
-    doctest_comment.
+default_extractors() ->
+    [doctest_comment].
 -endif.
-
-code_block_asserts(CodeBlock, InitLn) ->
-    case chunks(split_lines(CodeBlock)) of
-        [] ->
-            [];
-        [H|_] = Chunks ->
-            asserts(Chunks, {H, 1}, {InitLn, InitLn}, [])
-    end.
-
-keep_fun(Fun, Opts) ->
-    case Opts of
-        KeepAll when is_boolean(KeepAll) ->
-            KeepAll;
-        Funs when is_list(Funs) ->
-            lists:member(Fun, Funs)
-    end.
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
+
+module_forms(Mod) ->
+    {ok, {Mod, [{abstract_code, {_, AST}}]}} =
+        beam_lib:chunks(code:which(Mod), [abstract_code]),
+    AST.
+
+test_desc(Mod) ->
+    iolist_to_binary(io_lib:format("module '~w'", [Mod])).
+
+all_test_cases(Extractors, Args, Opts) ->
+    sort_test_cases(lists:flatten(lists:map(fun(Extractor) ->
+        test_cases(Extractor, Extractor:chunks(Args), Opts)
+    end, Extractors))).
+
+test_cases(Extractor, Chunks, Opts) ->
+    lists:filtermap(fun({Kind, Ln, Doc}) ->
+        case {Extractor:code_blocks(Doc), Kind} of
+            {{ok, CodeBlocks}, {doc, {M, F, A}}} ->
+                case should_test_doc(Opts, {F, A}) of
+                    true ->
+                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks)}};
+                    false ->
+                        false
+                end;
+            {{ok, CodeBlocks}, {moduledoc, M}} ->
+                case should_test_moduledoc(Opts) of
+                    true ->
+                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Ln, CodeBlocks)}};
+                    false ->
+                        false
+                end;
+            {none, _} ->
+                false
+        end
+    end, Chunks).
+
+sort_test_cases(TestCases) ->
+    lists:map(fun({_Ln, TestCase}) ->
+        TestCase
+    end, lists:keysort(1, TestCases)).
+
+should_test_moduledoc(#{moduledoc := true}) ->
+    true;
+should_test_moduledoc(#{moduledoc := false}) ->
+    false;
+should_test_moduledoc(Opts) when not is_map_key(moduledoc, Opts) ->
+    true.
+
+should_test_doc(#{funs := true}, _Fun) ->
+    true;
+should_test_doc(#{funs := false}, _Fun) ->
+    false;
+should_test_doc(#{funs := Funs}, Fun) when is_list(Funs) ->
+    lists:member(Fun, Funs);
+should_test_doc(Opts, _Fun) when not is_map_key(funs, Opts) ->
+    true.
 
 loc(Doc, Pos) ->
     Pre = binary_part(Doc, 0, Pos),
@@ -107,75 +152,3 @@ parse_loc(<<_, Rest/binary>>, {Ln, Col}) ->
     parse_loc(Rest, {Ln, Col+1});
 parse_loc(<<>>, {Ln, Col}) ->
     {Ln, Col}.
-
-split_lines(CodeBlock) ->
-    binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
-
-% TODO: Allow comments
-chunks(Parts) ->
-    Opts = [{capture, all_but_first, binary}],
-    lists:map(fun(Part) ->
-        case re:run(Part, <<"^([1-9][0-9]*)>\\s(.*?)\\.*$">>, Opts) of
-            {match, [N, Left]} ->
-                {left, {N, Left}};
-            nomatch ->
-                case re:run(Part, <<"^(\\s*)\\.\\.\\s(.*?)\\.*$">>, Opts) of
-                    {match, [Ws, More]} ->
-                        {more, {Ws, More}};
-                    nomatch ->
-                        {right, Part}
-                end
-        end
-    end, Parts).
-
-asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
-    case check_more_format(Ws, N) of
-        ok ->
-            asserts([{left, {N, <<L/binary, M/binary>>}} | T], HI, {Ln, NLn+1}, Acc);
-        {error, {EWs, RWs}} ->
-            Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), "..> ", M]),
-            Received = iolist_to_binary([lists:duplicate(RWs, "\s"), "..> ", M]),
-            {error, {format, #{
-                line => NLn+1,
-                expected => Expected,
-                received => Received
-            }}}
-    end;
-asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
-    case check_left_index(N, I) of
-        ok when T =:= [] ->
-            {ok, [{{L, Ln}, {R, NLn+1}} | Acc]};
-        ok ->
-            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{L, Ln}, {R, NLn+1}} | Acc]);
-        error ->
-            Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
-            Received = iolist_to_binary([N, "> ", H]),
-            {error, {format, #{
-                line => Ln,
-                expected => Expected,
-                received => Received
-            }}}
-    end;
-% Code block is not a test, e.g:
-% foo() ->
-%     bar.
-asserts(_, _, _, _) ->
-    {ok, []}.
-
-check_more_format(Ws, Ln) ->
-    LnSz = max(0, byte_size(Ln) - 1),
-    WsSz = byte_size(Ws),
-    case WsSz =:= LnSz of
-        true ->
-            ok;
-        false ->
-            {error, {LnSz, WsSz}}
-    end.
-
-check_left_index(N, Ln) ->
-    case catch binary_to_integer(N) =:= Ln of
-        true ->
-            ok;
-        _ ->
-            error
-    end.

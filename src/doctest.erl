@@ -20,17 +20,16 @@ Provides `module/1` and `module/2` to test doc attributes.
 -moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
--export([module/1, module/2, module/3]).
-
--export([compile/3]).
+-export([module/1, module/2, forms/2]).
 
 -type options() :: #{
+    enabled => boolean(),
     moduledoc => boolean(),
     funs => boolean() | [{atom(), arity()}],
-    eunit => resolve | [term()]
-    % TODO: extractors => [module()]
+    eunit => resolve | [term()],
+    extractors => [module()]
 }.
--type test_result() :: ok | error | {error, term()}.
+-type test_result() :: ok | error.
 
 %%%=====================================================================
 %%% API functions
@@ -44,111 +43,48 @@ Provides `module/1` and `module/2` to test doc attributes.
 module(Mod) ->
     module(Mod, #{}).
 
--doc #{ equiv => module(doctest_extract:default_extractor(), Mod, Opts) }.
 -spec module(Mod, Opts) -> Result when
       Mod :: module(),
       Opts :: options(),
       Result :: test_result().
 
 module(Mod, Opts) ->
-    module(doctest_extract:default_extractor(), Mod, Opts).
+    run(module_tests, Mod, Opts).
 
--spec module(Extractor, Mod, Opts) -> Result when
-      Extractor :: module(),
-      Mod :: module(),
+-spec forms(Forms, Opts) -> Result when
+      Forms :: [erl_syntax:syntaxTree()],
       Opts :: options(),
       Result :: test_result().
 
-module(Extractor, Mod, Opts) when is_atom(Mod), is_map(Opts) ->
-    Env = application:get_all_env(doctest),
-    ShouldTestModDoc = maps:get(moduledoc, Opts, proplists:get_value(moduledoc, Env, true)),
-    FunsOpts = maps:get(funs, Opts, proplists:get_value(funs, Env, true)),
-    case doctest_extract:extract_module_tests(Extractor, Mod, ShouldTestModDoc, FunsOpts) of
-        {ok, Tests} ->
-            EunitOpts = maps:get(eunit, Opts, proplists:get_value(eunit, Env, resolve)),
-            doctest_eunit:test(Tests, EunitOpts);
-        {error, Reason} ->
-            {error, Reason}
-    end.
-
-compile(Mod, Extractors, Opts) ->
-    Forms = module_forms(Mod),
-    CompileInfo = Mod:module_info(compile),
-    {ok, Mod, Bin} = compile:forms(Forms, [
-        binary,
-        debug_info,
-        % export_all,
-        % nowarn_export_all,
-        {i, "eunit/include/eunit.hrl"}
-        % | CompileInfo
-    ]),
-    {source, Filename} = proplists:lookup(source, CompileInfo),
-    % NOTE: Load module is needed for parse_transformation.
-    %       Check if spawn solves this issue by waiting for it.
-    % Maybe create a temp mod and export all functions to enable internal funs:
-    % 1> TmpMod = <unique_name>,
-    % 2> {module, TmpMod} = code:load_binary(TmpMod, Filename, Bin).
-    % And after:
-    % 3> code:purge(TmpMod), code:delete(TmpMod).
-    doctest_eunit:test({test_desc(Mod),
-        all_test_cases(Extractors, {Mod, Bin, Filename, Forms}, Opts)}).
+forms(Forms, Opts) ->
+    run(forms_tests, Forms, Opts).
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
 
-module_forms(Mod) ->
-    {ok, {Mod, [{abstract_code, {_, AST}}]}} =
-        beam_lib:chunks(code:which(Mod), [abstract_code]),
-    AST.
+run(Fun, Payload, Opts) ->
+    do_run(parse_opts(Opts), Fun, Payload).
 
-test_desc(Mod) ->
-    iolist_to_binary(io_lib:format("module '~w'", [Mod])).
+do_run(#{enabled := true} = Opts, Fun, Payload) ->
+    doctest_eunit:test(
+        doctest_extract:Fun(Payload, maps:get(extractors, Opts), Opts),
+        maps:get(eunit, Opts)
+    );
+do_run(#{enabled := false}, _, _) ->
+    ok.
 
-all_test_cases(Extractors, Args, Opts) ->
-    sort_test_cases(lists:flatten(lists:map(fun(Extractor) ->
-        test_cases(Extractor, Extractor:chunks(Args), Opts)
-    end, Extractors))).
-
-test_cases(Extractor, Chunks, Opts) ->
-    lists:filtermap(fun({Kind, Ln, Doc}) ->
-        case {Extractor:code_blocks(Doc), Kind} of
-            {{ok, CodeBlocks}, {doc, {M, F, A}}} ->
-                case should_test_doc(Opts, {F, A}) of
-                    true ->
-                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks)}};
-                    false ->
-                        false
-                end;
-            {{ok, CodeBlocks}, {moduledoc, M}} ->
-                case should_test_moduledoc(Opts) of
-                    true ->
-                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Ln, CodeBlocks)}};
-                    false ->
-                        false
-                end;
-            {none, _} ->
-                false
-        end
-    end, Chunks).
-
-sort_test_cases(TestCases) ->
-    lists:map(fun({_Ln, TestCase}) ->
-        TestCase
-    end, lists:keysort(1, TestCases)).
-
-should_test_moduledoc(#{moduledoc := true}) ->
-    true;
-should_test_moduledoc(#{moduledoc := false}) ->
-    false;
-should_test_moduledoc(Opts) when not is_map_key(moduledoc, Opts) ->
-    true.
-
-should_test_doc(#{funs := true}, _Fun) ->
-    true;
-should_test_doc(#{funs := false}, _Fun) ->
-    false;
-should_test_doc(#{funs := Funs}, Fun) when is_list(Funs) ->
-    lists:member(Fun, Funs);
-should_test_doc(Opts, _Fun) when not is_map_key(funs, Opts) ->
-    true.
+parse_opts(Opts) when is_map(Opts) ->
+    Env = application:get_all_env(doctest),
+    #{
+        enabled => maps:get(enabled, Opts,
+            proplists:get_value(enabled, Env, true)),
+        moduledoc => maps:get(moduledoc, Opts,
+            proplists:get_value(moduledoc, Env, true)),
+        funs => maps:get(funs, Opts,
+            proplists:get_value(funs, Env, true)),
+        eunit => maps:get(eunit, Opts,
+            proplists:get_value(eunit, Env, resolve)),
+        extractors => maps:get(extractors, Opts,
+            proplists:get_value(extractors, Env, doctest_extract:default_extractors()))
+    }.

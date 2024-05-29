@@ -29,34 +29,44 @@ Just plug the header on your module:
 % API functions
 -export([parse_transform/2]).
 
-% Support functions
--export([ attributes/2
-        , filtermap_forms/3
-        , attribute_name/1
-        , normalize_attribute/1
-        , form_line/1
-        ]).
-
-% Contains the settings record.
--include("doctest_parse_transform.hrl").
-
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
-parse_transform(Forms, _Opt) ->
-    % Extract and run tests
-    Extractor = doctest_markdown,
-    ensure_modules_loaded(Extractor),
-    Settings = settings(doctest_attrs(Forms), default_settings()),
-    Tests = Extractor:extract_forms_tests(Forms, Settings),
-    doctest_eunit:test(Tests, Settings#settings.eunit),
-    % Return the original forms
+parse_transform(Forms, _Opts) ->
+    spawn(fun() ->
+        code:ensure_loaded(doctest),
+        doctest:forms(Forms, parse_opts(doctest_attrs(Forms), #{}))
+    end),
 	Forms.
 
 %%%=====================================================================
-%%% Support functions
+%%% Internal functions
 %%%=====================================================================
+
+parse_opts([Enabled | T], Opts) when is_boolean(Enabled) ->
+    parse_opts(T, Opts#{enabled => Enabled});
+parse_opts([Funs | T], Opts) when is_list(Funs) ->
+    parse_opts(T, Opts#{funs => Funs});
+parse_opts([{enabled, Enabled} | T], Opts) when is_boolean(Enabled) ->
+    parse_opts(T, Opts#{enabled => Enabled});
+parse_opts([{moduledoc, Enabled} | T], Opts) when is_boolean(Enabled) ->
+    parse_opts(T, Opts#{moduledoc => Enabled});
+parse_opts([{funs, Enabled} | T], Opts) when is_boolean(Enabled) ->
+    parse_opts(T, Opts#{funs => Enabled});
+parse_opts([{funs, Funs} | T], Opts) when is_list(Funs) ->
+    parse_opts(T, Opts#{funs => Funs});
+parse_opts([{eunit, Eunit} | T], Opts) ->
+    parse_opts(T, Opts#{eunit => Eunit});
+parse_opts([{extractors, Extractors} | T], Opts) when is_list(Extractors) ->
+    parse_opts(T, Opts#{extractors => Extractors});
+parse_opts([Map | T], Opts) when is_map(Map) ->
+    parse_opts(T, maps:merge(Opts, Map));
+parse_opts([], #{} = Opts) ->
+    Opts.
+
+doctest_attrs(Forms) ->
+    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
 
 attributes(Name, Forms) ->
     filtermap_forms(
@@ -91,7 +101,7 @@ normalize_attribute(Attr) ->
     Exprs = erl_syntax:revert_forms(erl_syntax:attribute_arguments(Attr)),
     case lists:map(fun(Expr) ->
         {value, Value, []} = erl_eval:expr(Expr, []),
-        {form_line(Expr), Value}
+        {ln(Expr), Value}
     end, Exprs) of
         [H] ->
             H;
@@ -99,52 +109,5 @@ normalize_attribute(Attr) ->
             List
     end.
 
-form_line(Form) ->
+ln(Form) ->
     erl_anno:line(erl_syntax:get_pos(Form)).
-
-%%%=====================================================================
-%%% Internal functions
-%%%=====================================================================
-
-ensure_modules_loaded(Extractor) ->
-    [code:ensure_loaded(Mod) || Mod <- [
-        doctest_extract,
-        Extractor,
-        doctest_eunit
-    ]].
-
-settings([Enabled | T], Settings) when is_boolean(Enabled) ->
-    settings(T, Settings#settings{enabled = Enabled});
-settings([Funs | T], Settings) when is_list(Funs) ->
-    settings(T, Settings#settings{funs = Funs});
-settings([{enabled, Enabled} | T], Settings) when is_boolean(Enabled) ->
-    settings(T, Settings#settings{enabled = Enabled});
-settings([{moduledoc, Enabled} | T], Settings) when is_boolean(Enabled) ->
-    settings(T, Settings#settings{moduledoc = Enabled});
-settings([{funs, Enabled} | T], Settings) when is_boolean(Enabled)->
-    settings(T, Settings#settings{funs = Enabled});
-settings([{funs, Funs} | T], Settings) when is_list(Funs) ->
-    settings(T, Settings#settings{funs = Funs});
-settings([{eunit, Eunit} | T], Settings) ->
-    settings(T, Settings#settings{eunit = Eunit});
-settings([Map | T], Settings) when is_map(Map) ->
-    settings(T, Settings#settings{
-        enabled = maps:get(enabled, Map, Settings#settings.enabled),
-        moduledoc = maps:get(moduledoc, Map, Settings#settings.moduledoc),
-        funs = maps:get(funs, Map, Settings#settings.funs),
-        eunit = maps:get(eunit, Map, Settings#settings.eunit)
-    });
-settings([], #settings{} = Settings) ->
-    Settings.
-
-default_settings() ->
-    Env = application:get_all_env(doctest),
-    #settings{
-        enabled = proplists:get_value(enabled, Env, true),
-        moduledoc = proplists:get_value(moduledoc, Env, true),
-        funs = proplists:get_value(funs, Env, true),
-        eunit = proplists:get_value(eunit, Env, resolve)
-    }.
-
-doctest_attrs(Forms) ->
-    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
