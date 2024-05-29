@@ -98,17 +98,17 @@ all_test_cases(Extractors, Args, Opts) ->
 test_cases(Extractor, Chunks, Opts) ->
     lists:filtermap(fun({Kind, Ln, Doc}) ->
         case {Extractor:code_blocks(Doc), Kind} of
-            {{ok, CodeBlocks}, {doc, {M, F, A}}} ->
+            {{ok, CodeBlocks}, {doc, {M, F, A}, Tag}} ->
                 case should_test_doc(Opts, {F, A}) of
                     true ->
-                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks)}};
+                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks, Tag)}};
                     false ->
                         false
                 end;
-            {{ok, CodeBlocks}, {moduledoc, M}} ->
+            {{ok, CodeBlocks}, {moduledoc, M, Tag}} ->
                 case should_test_moduledoc(Opts) of
                     true ->
-                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Ln, CodeBlocks)}};
+                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Ln, CodeBlocks, Tag)}};
                     false ->
                         false
                 end;

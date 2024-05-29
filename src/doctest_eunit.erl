@@ -20,7 +20,7 @@
 -export([test/1, test/2]).
 
 % Support functions
--export([moduledoc_tests/3, doc_tests/3, test_title/2]).
+-export([moduledoc_tests/4, doc_tests/4, test_title/2]).
 
 %%%=====================================================================
 %%% API functions
@@ -38,10 +38,10 @@ test(Tests, Options) when is_list(Options) ->
 %%% Support functions
 %%%=====================================================================
 
-moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
+moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
     case catch tests(Mod, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
-            {desc("-moduledoc", Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
+            {desc(Tag, Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
                 case LeftValue =:= RightValue of
                     true ->
                         ok;
@@ -49,6 +49,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
                         erlang:error({assertEqual, [
                             {doctest, #{
                                 attribute => moduledoc,
+                                tag => Tag,
                                 left => {Left, LeftLn, LeftValue},
                                 right => {Right, RightLn, RightValue},
                                 ln_range => {LeftLn, RightLn}
@@ -84,10 +85,10 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks) ->
             ])
     end.
 
-doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
+doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
     case catch tests(M, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
-            {desc("-doc", M, LeftLn), {M, F, A}, fun() ->
+            {desc(Tag, M, LeftLn), {M, F, A}, fun() ->
                 case LeftValue =:= RightValue of
                     true ->
                         ok;
@@ -95,6 +96,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks) ->
                         erlang:error({assertEqual, [
                             {doctest, #{
                                 attribute => doc,
+                                tag => Tag,
                                 left => {Left, LeftLn, LeftValue},
                                 right => {Right, RightLn, RightValue},
                                 ln_range => {LeftLn, RightLn}
@@ -182,7 +184,7 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
     end, [], CodeBlocks)}.
 
 desc(Tag, Mod, Ln) ->
-    iolist_to_binary(io_lib:format("~s\s~s", [Tag, test_title(Mod, Ln)])).
+    iolist_to_binary(io_lib:format("doctest ~s\s~s", [Tag, test_title(Mod, Ln)])).
 
 eval(Bin, Bindings) ->
     {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),

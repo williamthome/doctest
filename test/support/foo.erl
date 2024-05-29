@@ -29,7 +29,7 @@ true
 """.
 -moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
--export([foo/0]).
+-export([foo/0, bar/0]).
 
 -doc """
 Foo
@@ -45,3 +45,14 @@ true
 """.
 foo() ->
     foo.
+
+%% @doc Comments are also supported.
+%% ```
+%% 1> Bar = bar:bar().
+%% bar
+%% 2> Bar =:= bar.
+%% true
+%% '''
+%% @todo Check why no whitespace is allowed between doc and function.
+bar() ->
+    bar.

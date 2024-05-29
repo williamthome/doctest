@@ -18,4 +18,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 module_test() ->
-    ?assertEqual(ok, doctest:module(foo)).
+    ?assertEqual(ok, doctest:module(foo, #{extractors => [
+        doctest_markdown,
+        doctest_comment
+    ]})).

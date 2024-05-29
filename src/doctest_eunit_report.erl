@@ -102,14 +102,11 @@ terminate({error, Reason}, State) ->
     io:format(user, "[error] ~tp~n", [{Reason, State}]),
     {error, Reason}.
 
-test_info(#{desc := <<"-moduledoc ", Title/binary>>} = D) ->
+test_info(#{desc := <<"doctest ", Rest/binary>>} = D) ->
+    [Tag, Title] = binary:split(Rest, <<$\s>>),
     [Filename, LnBin] = binary:split(Title, <<":">>),
     Ln = binary_to_integer(LnBin),
-    D#{tag => ~"-moduledoc", title => Title, file => Filename, file_ln => Ln};
-test_info(#{desc := <<"-doc ", Title/binary>>} = D) ->
-    [Filename, LnBin] = binary:split(Title, <<":">>),
-    Ln = binary_to_integer(LnBin),
-    D#{tag => ~"-doc", title => Title, file => Filename, file_ln => Ln};
+    D#{tag => Tag, title => Title, file => Filename, file_ln => Ln};
 test_info(#{source := {M, F, A}} = D) when is_atom(M), is_atom(F), is_integer(A) ->
     Ln = guess_ln({M, F, A}),
     Title = doctest_eunit:test_title(M, Ln),

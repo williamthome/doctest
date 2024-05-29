@@ -58,7 +58,7 @@ code_blocks(Markdown) ->
 moduledoc_chunk(Mod, Anno, Lang) ->
     case unwrap(Lang) of
         {ok, Doc} ->
-            {ok, {{moduledoc, Mod}, erl_anno:line(Anno), Doc}};
+            {ok, {{moduledoc, Mod, ~"-moduledoc"}, erl_anno:line(Anno), Doc}};
         none ->
             none
     end.
@@ -66,7 +66,7 @@ moduledoc_chunk(Mod, Anno, Lang) ->
 doc_chunk(MFA, Anno, Lang) ->
     case unwrap(Lang) of
         {ok, Doc} ->
-            {ok, {{doc, MFA}, erl_anno:line(Anno), Doc}};
+            {ok, {{doc, MFA, ~"-doc"}, erl_anno:line(Anno), Doc}};
         none ->
             none
     end.
