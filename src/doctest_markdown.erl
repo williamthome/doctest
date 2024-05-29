@@ -33,7 +33,7 @@
 %%% API functions
 %%%=====================================================================
 
-chunks({Mod, Bin, Filename, Forms}) ->
+chunks({Mod, Bin, Forms}) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
             case moduledoc_chunk(Mod, Anno, Lang) of
@@ -43,9 +43,9 @@ chunks({Mod, Bin, Filename, Forms}) ->
                     doc_chunks(Mod, Docs)
             end;
         {error, missing} ->
-            error(nodebug_info, [{Mod, Bin, Filename, Forms}]);
+            error({nodebug_info, "add 'debug_info' to the compiler flags"}, [{Mod, Bin, Forms}]);
         {error, Reason} ->
-            error(Reason, [{Mod, Bin, Filename, Forms}])
+            error(Reason, [{Mod, Bin, Forms}])
     end.
 
 code_blocks(Markdown) ->

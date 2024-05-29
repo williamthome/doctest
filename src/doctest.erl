@@ -66,11 +66,8 @@ forms(Forms, Opts) ->
 run(Fun, Payload, Opts) ->
     do_run(parse_opts(Opts), Fun, Payload).
 
-do_run(#{enabled := true} = Opts, Fun, Payload) ->
-    doctest_eunit:test(
-        doctest_extract:Fun(Payload, maps:get(extractors, Opts), Opts),
-        maps:get(eunit, Opts)
-    );
+do_run(#{enabled := true, eunit := EunitOpts} = Opts, Fun, Payload) ->
+    doctest_eunit:test(doctest_extract:Fun(Payload, Opts), EunitOpts);
 do_run(#{enabled := false}, _, _) ->
     ok.
 

@@ -17,7 +17,12 @@
 -moduledoc false.
 
 % API functions
--export([module_tests/3, forms_tests/3, code_blocks/2, default_extractors/0]).
+-export([ module_tests/2
+        , forms_tests/2
+        , compile_forms/1
+        , code_blocks/2
+        , default_extractors/0
+        ]).
 
 % TODO: Fix callbacks
 % -callback extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) -> Result when
@@ -48,18 +53,20 @@
 %%% API functions
 %%%=====================================================================
 
-module_tests(Mod, Extractors, Opts) when is_atom(Mod), is_list(Extractors) ->
-    forms_tests(module_forms(Mod), Extractors, Opts).
+module_tests(Mod, Opts) when is_atom(Mod) ->
+    forms_tests(module_forms(Mod), Opts).
 
-forms_tests(Forms, Extractors, Opts) when is_list(Forms), is_list(Extractors) ->
-    {ok, Mod, Bin} = compile:forms(Forms, [
+forms_tests(Forms, Opts) when is_map(Opts) ->
+    {ok, Mod, Bin} = compile_forms(Forms),
+    Extractors = maps:get(extractors, Opts, default_extractors()),
+    {test_desc(Mod), all_test_cases(Extractors, {Mod, Bin, Forms}, Opts)}.
+
+compile_forms(Forms) when is_list(Forms) ->
+    compile:forms(Forms, [
         binary,
         debug_info,
         {i, "eunit/include/eunit.hrl"}
-    ]),
-    {source, Filename} = proplists:lookup(source, Mod:module_info(compile)),
-    ExtractorArgs = {Mod, Bin, Filename, Forms},
-    {test_desc(Mod), all_test_cases(Extractors, ExtractorArgs, Opts)}.
+    ]).
 
 code_blocks(Doc, RE) when is_binary(Doc) ->
     case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of

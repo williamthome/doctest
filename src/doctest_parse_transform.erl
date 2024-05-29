@@ -34,15 +34,27 @@ Just plug the header on your module:
 %%%=====================================================================
 
 parse_transform(Forms, _Opts) ->
-    spawn(fun() ->
-        code:ensure_loaded(doctest),
-        doctest:forms(Forms, parse_opts(doctest_attrs(Forms), #{}))
-    end),
-	Forms.
+	doctest_forms:append(doctest_fun(Forms),
+        doctest_forms:prepend(doctest_export(), Forms)).
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
+
+doctest_export() ->
+    merl:quote("-export([doctest_test/0]).").
+
+doctest_fun(Forms) ->
+    erl_syntax:revert(merl:qquote([
+        "doctest_test() ->",
+        "    ok =:= doctest:module('@module', _@options)."
+    ], [
+        {module, merl:term(doctest_forms:module(Forms))},
+        {options, merl:term(parse_opts(doctest_attrs(Forms), #{}))}
+    ])).
+
+doctest_attrs(Forms) ->
+    [Attr || {_Ln, Attr} <- doctest_forms:get_attributes(doctest, Forms)].
 
 parse_opts([Enabled | T], Opts) when is_boolean(Enabled) ->
     parse_opts(T, Opts#{enabled => Enabled});
@@ -64,50 +76,3 @@ parse_opts([Map | T], Opts) when is_map(Map) ->
     parse_opts(T, maps:merge(Opts, Map));
 parse_opts([], #{} = Opts) ->
     Opts.
-
-doctest_attrs(Forms) ->
-    [Attr || {_Ln, Attr} <- attributes(doctest, Forms)].
-
-attributes(Name, Forms) ->
-    filtermap_forms(
-        fun(Type) -> Type =:= attribute end,
-        fun({attribute, Attr}) ->
-            case attribute_name(Attr) =:= Name of
-                true ->
-                    {true, normalize_attribute(Attr)};
-                false ->
-                    false
-            end
-        end,
-        Forms
-    ).
-
-filtermap_forms(Validate, Filtermap, Forms) when
-    is_function(Validate, 1), is_function(Filtermap, 1), is_list(Forms) ->
-    lists:filtermap(fun(Form) ->
-        Type = erl_syntax:type(Form),
-        case Validate(Type) of
-            true ->
-                Filtermap({Type, Form});
-            false ->
-                false
-        end
-    end, Forms).
-
-attribute_name(Attr) ->
-    erl_syntax:atom_value(erl_syntax:attribute_name(Attr)).
-
-normalize_attribute(Attr) ->
-    Exprs = erl_syntax:revert_forms(erl_syntax:attribute_arguments(Attr)),
-    case lists:map(fun(Expr) ->
-        {value, Value, []} = erl_eval:expr(Expr, []),
-        {ln(Expr), Value}
-    end, Exprs) of
-        [H] ->
-            H;
-        List ->
-            List
-    end.
-
-ln(Form) ->
-    erl_anno:line(erl_syntax:get_pos(Form)).

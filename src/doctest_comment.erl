@@ -30,7 +30,8 @@
 %%% API functions
 %%%=====================================================================
 
-chunks({Mod, _Bin, Filename, Forms}) ->
+chunks({Mod, _Bin, Forms}) ->
+    Filename = doctest_forms:filename(Forms),
     Comments = erl_comment_scan:file(Filename),
     Tree = erl_recomment:recomment_forms(Forms, Comments),
     do_chunks(Mod, Tree).
