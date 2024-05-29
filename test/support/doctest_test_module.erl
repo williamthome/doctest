@@ -13,15 +13,15 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(foo).
+-module(doctest_test_module).
 -moduledoc """
 Module doc tags can also be tested.
 
 ```erlang
-1> foo:foo()
+1> doctest_test_module:foo()
 .. =:= bar.
 false
-2> foo:foo()
+2> doctest_test_module:foo()
 .. =:=
 .. foo.
 true
@@ -34,12 +34,12 @@ true
 -doc """
 Foo
 ```erlang
-1> foo:foo().
+1> doctest_test_module:foo().
 foo
 ```
 Bar
 ```erlang
-1> foo:foo() =:= foo.
+1> doctest_test_module:foo() =:= foo.
 true
 ```
 """.
@@ -48,7 +48,7 @@ foo() ->
 
 %% @doc Comments are also supported.
 %% ```
-%% 1> Bar = bar:bar().
+%% 1> Bar = doctest_test_module:bar().
 %% bar
 %% 2> Bar =:= bar.
 %% true
