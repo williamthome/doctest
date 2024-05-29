@@ -22,14 +22,14 @@
 % Support functions
 -export([default_extractor/0, code_block_asserts/2, keep_fun/2]).
 
--callback extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) -> Result when
-          Mod :: module(),
-          ShouldTestModDoc :: boolean(),
-          FunsOpts :: boolean() | [{FunName, FunArity}],
-          FunName :: atom(),
-          FunArity :: arity(),
-          Result :: {ok, Tests} | {error, term()},
-          Tests :: list().
+% -callback extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) -> Result when
+%           Mod :: module(),
+%           ShouldTestModDoc :: boolean(),
+%           FunsOpts :: boolean() | [{FunName, FunArity}],
+%           FunName :: atom(),
+%           FunArity :: arity(),
+%           Result :: {ok, Tests} | {error, term()},
+%           Tests :: list().
 
 -callback code_blocks(binary()) -> code_blocks().
 

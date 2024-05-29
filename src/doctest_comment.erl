@@ -18,7 +18,7 @@
 -behaviour(doctest_extract).
 
 % API functions
--export([code_blocks/1, extract_module_tests/3, extract_forms_tests/2]).
+-export([chunks/1, code_blocks/1]).
 
 -define(CODE_BLOCK_RE,
     "(?ms)^(```)\\s*\\n"        % ```
@@ -33,63 +33,42 @@
 %%% API functions
 %%%=====================================================================
 
-code_blocks(Doc) ->
-    doctest_extract:code_blocks(Doc, ?CODE_BLOCK_RE).
-
-extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) ->
-    {source, Filename} = proplists:lookup(source, Mod:module_info(compile)),
-    {ok, Forms} = epp:parse_file(Filename, [], []),
+chunks({Mod, _Bin, Filename, Forms}) ->
     Comments = erl_comment_scan:file(Filename),
     Tree = erl_recomment:recomment_forms(Forms, Comments),
-    {ok, do_module_extract_tests(Mod, ShouldTestModDoc, FunsOpts, Tree)}.
+    do_chunks(Mod, Tree).
 
-extract_forms_tests(_Forms, _Settings) ->
-    error(not_implemented_yet).
+code_blocks(Doc) ->
+    doctest_extract:code_blocks(Doc, ?CODE_BLOCK_RE).
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
 
-do_module_extract_tests(Mod, ShouldTestModDoc, FunsOpts, Tree) ->
+do_chunks(Mod, Tree) ->
     Forms = erl_syntax:form_list_elements(erl_syntax:flatten_form_list(Tree)),
-    do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts).
+    do_chunks_1(Forms, Mod).
 
-do_module_extract_tests_1([Form | Forms], Mod, ShouldTestModDoc, FunsOpts) ->
+do_chunks_1([Form | Forms], Mod) ->
     case erl_syntax:get_precomments(Form) of
         [] ->
-            do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts);
+            do_chunks_1(Forms, Mod);
         Comments ->
-            {Ln, Doc} = comment_text(Comments),
-            case code_blocks(Doc) of
-                {ok, CodeBlocks} ->
-                    do_module_extract_tests_2(Form, Forms, Mod, ShouldTestModDoc, FunsOpts, Ln, CodeBlocks);
-                none ->
-                    do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts)
-            end
+            do_chunks_2(Form, Forms, Mod, Comments)
     end;
-do_module_extract_tests_1([], _Mod, _ShouldTestModDoc, _FunsOpts) ->
+do_chunks_1([], _Mod) ->
     [].
 
-do_module_extract_tests_2(Form, Forms, Mod, ShouldTestModDoc, FunsOpts, Ln, CodeBlocks) ->
+do_chunks_2(Form, Forms, Mod, Comments) ->
     case erl_syntax_lib:analyze_form(Form) of
         {function, {Fun, Arity}} ->
-            case doctest_extract:keep_fun({Fun, Arity}, FunsOpts) of
-                true ->
-                    [doctest_eunit:doc_tests({Mod, Fun, Arity}, Ln, CodeBlocks)
-                    | do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts)];
-                false ->
-                    do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts)
-            end;
+            {Ln, Doc} = comment_text(Comments),
+            [{{doc, {Mod, Fun, Arity}}, Ln, Doc} | do_chunks_1(Forms, Mod)];
         {attribute, {module, Mod}} ->
-            case ShouldTestModDoc of
-                true ->
-                    [doctest_eunit:moduledoc_tests(Mod, Ln, CodeBlocks)
-                    | do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts)];
-                false ->
-                    do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts)
-            end;
+            {Ln, Doc} = comment_text(Comments),
+            [{{moduledoc, Mod}, Ln, Doc} | do_chunks_1(Forms, Mod)];
         _ ->
-            do_module_extract_tests_1(Forms, Mod, ShouldTestModDoc, FunsOpts)
+            do_chunks_1(Forms, Mod)
     end.
 
 comment_text(Cs) ->
