@@ -161,26 +161,31 @@ print_footer(Data, Time) ->
     Order = [fail, pass, skip, cancel],
     Props = [proplists:lookup(Prop, Data) || Prop <- Order],
     Total = lists:foldl(fun({_, N}, Acc) -> Acc + N end, 0, Props),
-    Init = [{{fmt, "~p total", [Total]}, {fg, white}}],
-    Info = lists:join(~", ", lists:foldl(fun
-        ({_, 0}, Acc) ->
-            Acc;
-        ({fail, N}, Acc) ->
-            [{{fmt, "~p failed", [N]}, [bold, {fg, red}]} | Acc];
-        ({pass, N}, Acc) ->
-            [{{fmt, "~p passed", [N]}, [bold, {fg, green}]} | Acc];
-        ({skip, N}, Acc) ->
-            [{{fmt, "~p skipped", [N]}, [bold, {fg, yellow}]} | Acc];
-        ({cancel, N}, Acc) ->
-            [{{fmt, "~p cancelled", [N]}, [{fg, bright_black}]} | Acc]
-    end, Init, lists:reverse(Props))),
-    doctest_term:write([
-        ~"\n\n",
-        {~"Tests: ", bold}, Info,
-        ~"\n",
-        {~" Time: ", bold}, {to_bin, Time / 1000}, ~" seconds",
-        ~"\n\n"
-    ]).
+    case Total =:= 0 of
+        true ->
+            ok;
+        false ->
+            Init = [{{fmt, "~p total", [Total]}, {fg, white}}],
+            Info = lists:join(~", ", lists:foldl(fun
+                ({_, 0}, Acc) ->
+                    Acc;
+                ({fail, N}, Acc) ->
+                    [{{fmt, "~p failed", [N]}, [bold, {fg, red}]} | Acc];
+                ({pass, N}, Acc) ->
+                    [{{fmt, "~p passed", [N]}, [bold, {fg, green}]} | Acc];
+                ({skip, N}, Acc) ->
+                    [{{fmt, "~p skipped", [N]}, [bold, {fg, yellow}]} | Acc];
+                ({cancel, N}, Acc) ->
+                    [{{fmt, "~p cancelled", [N]}, [{fg, bright_black}]} | Acc]
+            end, Init, lists:reverse(Props))),
+            doctest_term:write([
+                ~"\n\n",
+                {~"Tests: ", bold}, Info,
+                ~"\n",
+                {~" Time: ", bold}, {to_bin, Time / 1000}, ~" seconds",
+                ~"\n\n"
+            ])
+    end.
 
 do_print_groups([{_I, {_Id, [_Data, []]}} | T], Time) ->
     do_print_groups(T, Time);
