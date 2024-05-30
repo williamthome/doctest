@@ -68,7 +68,9 @@ module_tests(Mod, Opts) when is_atom(Mod) ->
 forms_tests(Forms, Opts) when is_map(Opts) ->
     Mod = doctest_forms:module(Forms),
     Extractors = extractors(Opts),
-    {test_desc(Mod), all_test_cases(Extractors, {Mod, Forms}, Opts)}.
+    {test_desc(Mod), all_test_cases(Extractors, {Mod, Forms}, Opts#{
+        extractors => Extractors
+    })}.
 
 code_blocks(Doc, RE) when is_binary(Doc) ->
     case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of
