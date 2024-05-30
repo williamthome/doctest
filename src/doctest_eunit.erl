@@ -67,20 +67,22 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, {moduledoc_format, Info#{
-                module => Mod
-            }}}, [Mod, AttrLn, CodeBlocks]);
-        {error, {eval, Expr, Bindings, Stacktrace}} ->
-            error({doctest, {moduledoc_eval, #{
-                module => Mod,
-                expression => Expr,
-                bindings => Bindings,
-                message => "Make sure to call Mod:Fun when testing "
-                           "expressions via doctest:module"
-            }}}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+                {error_info, Info#{
+                    attribute => moduledoc,
+                    module => Mod,
+                    cause => format
+                }}
+            ]);
+        {error, {eval, Expr, Ln, Bindings, Reason}} ->
+            error({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
-                    cause => Stacktrace,
-                    module => Mod
+                    attribute => moduledoc,
+                    module => Mod,
+                    expression => Expr,
+                    bindings => Bindings,
+                    cause => Reason,
+                    line => Ln
                 }}
             ])
     end.
@@ -116,25 +118,26 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, {doc_format, Info#{
-                module => M,
-                function => F,
-                arity => A
-            }}}, [{M, F, A}, AttrLn, CodeBlocks]);
-        {error, {eval, Expr, Bindings, Stacktrace}} ->
-            error({doctest, {doc_eval, #{
-                module => M,
-                function => F,
-                arity => A,
-                expression => Expr,
-                bindings => Bindings,
-                message => "Make sure to call Mod:Fun when testing "
-                           "expressions via doctest:module"
-            }}}, [{M, F, A}, AttrLn, CodeBlocks], [
-                {error_info, #{
-                    cause => Stacktrace,
+            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, Info#{
+                    attribute => doc,
                     module => M,
-                    function => F
+                    function => F,
+                    arity => A,
+                    cause => format
+                }}
+            ]);
+        {error, {eval, Expr, Ln, Bindings, Reason}} ->
+            error({doctest, eval}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    attribute => doc,
+                    module => M,
+                    function => F,
+                    arity => A,
+                    expression => Expr,
+                    bindings => Bindings,
+                    cause => Reason,
+                    line => Ln
                 }}
             ])
     end.
@@ -162,30 +165,27 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
     {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
         case code_block_asserts(CodeBlock, AttrLn + CBLn) of
             {ok, Asserts} ->
-                lists:reverse(element(2, lists:foldl(fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
-                    {LeftValue, NewBindings} =
-                        try eval(Left, Bindings, {value, fun(Name, Args) ->
-                            % TODO: Maybe warn about testing non-exported functions.
-                            % logger:warning(<<"testing a private function">>, #{
-                            %     mfa => {Mod, Fun, Arity},
-                            %     file => Filename,
-                            %     line => LeftLn
-                            % }),
-                            erlang:apply(Mod, Name, Args)
-                        end})
-                        catch
-                            error:undef:Stacktrace ->
-                                throw({error, {eval, pp(Left), Bindings, Stacktrace}});
-                            Class:Reason:Stacktrace ->
-                                erlang:raise(Class, Reason, Stacktrace)
-                        end,
-                    {RightValue, []} = eval(Right, []),
-                    Test = Callback(
-                        {pp(Left), LeftLn, LeftValue},
-                        {pp(Right), RightLn, RightValue}
-                    ),
-                    {NewBindings, [Test | Acc1]}
-                end, {[], Acc}, lists:reverse(Asserts))));
+                lists:reverse(element(2, lists:foldl(
+                    fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
+                        {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, {value,
+                            fun(Name, Args) ->
+                                % TODO: Maybe warn about testing non-exported functions.
+                                % logger:warning(<<"testing a private function">>, #{
+                                %     mfa => {Mod, Fun, Arity},
+                                %     file => Filename,
+                                %     line => LeftLn
+                                % }),
+                                erlang:apply(Mod, Name, Args)
+                            end
+                        }),
+                        {RightValue, []} = eval(Right, RightLn, []),
+                        Test = Callback(
+                            {pp(Left), LeftLn, LeftValue},
+                            {pp(Right), RightLn, RightValue}
+                        ),
+                        {NewBindings, [Test | Acc1]}
+                    end, {[], Acc}, lists:reverse(Asserts)
+                )));
             {error, Reason} ->
                 throw({error, Reason})
         end
@@ -194,12 +194,18 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
 desc(Tag, Mod, Ln) ->
     iolist_to_binary(io_lib:format("doctest ~s\s~s", [Tag, test_title(Mod, Ln)])).
 
-eval(Exprs, Bindings) ->
-    eval(Exprs, Bindings, none).
+eval(Exprs, Ln, Bindings) ->
+    eval(Exprs, Ln, Bindings, none).
 
-eval(Exprs, Bindings, LocalFunctionHandler) ->
-    {value, Value, NewBindings} = erl_eval:exprs(Exprs, Bindings, LocalFunctionHandler),
-    {Value, NewBindings}.
+eval(Exprs, Ln, Bindings, LocalFunctionHandler) ->
+    try
+        {value, Value, NewBindings} =
+            erl_eval:exprs(Exprs, Bindings, LocalFunctionHandler),
+        {Value, NewBindings}
+    catch
+        _Class:Reason:_Stacktrace ->
+            throw({error, {eval, pp(Exprs), Ln, Bindings, Reason}})
+    end.
 
 pp(Exprs) ->
     iolist_to_binary(erl_pp:exprs(Exprs)).
