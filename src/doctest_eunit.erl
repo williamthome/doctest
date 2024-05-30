@@ -164,7 +164,15 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
             {ok, Asserts} ->
                 lists:reverse(element(2, lists:foldl(fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
                     {LeftValue, NewBindings} =
-                        try eval(Left, Bindings)
+                        try eval(Left, Bindings, {value, fun(Name, Args) ->
+                            % TODO: Maybe warn about testing non-exported functions.
+                            % logger:warning(<<"testing a private function">>, #{
+                            %     mfa => {Mod, Fun, Arity},
+                            %     file => Filename,
+                            %     line => LeftLn
+                            % }),
+                            erlang:apply(Mod, Name, Args)
+                        end})
                         catch
                             error:undef:Stacktrace ->
                                 throw({error, {eval, Left, Bindings, Stacktrace}});
@@ -187,9 +195,12 @@ desc(Tag, Mod, Ln) ->
     iolist_to_binary(io_lib:format("doctest ~s\s~s", [Tag, test_title(Mod, Ln)])).
 
 eval(Bin, Bindings) ->
+    eval(Bin, Bindings, none).
+
+eval(Bin, Bindings, LocalFunctionHandler) ->
     {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
     {ok, Exprs} = erl_parse:parse_exprs(Tokens),
-    {value, Value, NewBindings} = erl_eval:exprs(Exprs, Bindings),
+    {value, Value, NewBindings} = erl_eval:exprs(Exprs, Bindings, LocalFunctionHandler),
     {Value, NewBindings}.
 
 code_block_asserts(CodeBlock, InitLn) ->

@@ -35,7 +35,8 @@ true
 -doc """
 Foo
 ```erlang
-1> doctest_test_module:foo().
+1> % Test non-exported functions is allowed.
+.. foo().
 foo
 ```
 Bar
