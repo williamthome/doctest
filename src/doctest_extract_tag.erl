@@ -13,7 +13,7 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(doctest_comment).
+-module(doctest_extract_tag).
 -moduledoc false.
 -behaviour(doctest_extract).
 

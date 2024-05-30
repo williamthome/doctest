@@ -83,10 +83,10 @@ code_blocks(Doc, RE) when is_binary(Doc) ->
 
 -if(?MARKDOWN_SUPPORTED).
 default_extractors() ->
-    [doctest_markdown].
+    [doctest_extract_attr].
 -else.
 default_extractors() ->
-    [doctest_comment].
+    [doctest_extract_tag].
 -endif.
 
 %%%=====================================================================

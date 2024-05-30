@@ -19,6 +19,6 @@
 
 module_test() ->
     ?assertEqual(ok, doctest:module(doctest_test_module, #{extractors => [
-        doctest_markdown,
-        doctest_comment
+        doctest_extract_attr,
+        doctest_extract_tag
     ]})).
