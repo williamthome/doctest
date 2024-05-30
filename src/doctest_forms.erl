@@ -14,7 +14,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_forms).
--moduledoc false.
 
 % API functions
 -export([ module/1

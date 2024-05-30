@@ -14,6 +14,9 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_transform_test).
+-include("src/doctest_check.hrl").
+
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -moduledoc """
 Module doc tags can also be tested.
 
@@ -22,7 +25,7 @@ Module doc tags can also be tested.
 true
 ```
 """.
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
+-endif.
 
 -export([sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2]).
 
@@ -31,6 +34,7 @@ true
 -doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2].
 -endif.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 1> doctest_transform_test:sum(1, 1).
@@ -40,9 +44,11 @@ true
 3
 ```
 """.
+-endif.
 sum(A, B) ->
     A + B.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 1> doctest_transform_test:mult(1, 1).
@@ -52,26 +58,32 @@ sum(A, B) ->
 2
 ```
 """.
+-endif.
 mult(A, B) ->
     A * B.
 
 nodoc() ->
     ok.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 """.
+-endif.
 nocodeblock() ->
     ok.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 foo() ->
     bar.
 ```
 """.
+-endif.
 notestcodeblock() ->
     ok.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 1> Foo = "foo".
@@ -83,5 +95,6 @@ notestcodeblock() ->
 "foobar"
 ```
 """.
+-endif.
 concat(A, B) ->
     A ++ B.

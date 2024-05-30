@@ -14,7 +14,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_eunit).
--moduledoc false.
 
 % API functions
 -export([test/1, test/2]).
@@ -67,7 +66,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+            doctest_error:raise({doctest, format}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, Info#{
                     attribute => moduledoc,
                     module => Mod,
@@ -75,7 +74,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
+            doctest_error:raise({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
@@ -118,18 +117,22 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
-                {error_info, Info#{
+            doctest_error:raise(
+                {doctest, format},
+                [{M, F, A}, AttrLn, CodeBlocks],
+                Info#{
                     attribute => doc,
                     module => M,
                     function => F,
                     arity => A,
                     cause => format
-                }}
-            ]);
+                }
+            );
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval}, [{M, F, A}, AttrLn, CodeBlocks], [
-                {error_info, #{
+            doctest_error:raise(
+                {doctest, eval},
+                [{M, F, A}, AttrLn, CodeBlocks],
+                #{
                     attribute => doc,
                     module => M,
                     function => F,
@@ -138,8 +141,8 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     bindings => Bindings,
                     cause => Reason,
                     line => Ln
-                }}
-            ])
+                }
+            )
     end.
 
 test_title(Mod, Ln) ->

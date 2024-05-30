@@ -14,7 +14,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_eunit_report).
--moduledoc false.
 
 -behaviour(eunit_listener).
 
@@ -116,16 +115,16 @@ test_info(#{source := {M, F, A}} = D) when is_atom(M), is_atom(F), is_integer(A)
 test_info(#{desc := <<"file \"", Rest/binary>>} = D) ->
     Size = byte_size(Rest) - 1,
     Filename = binary_part(Rest, 0, Size),
-    D#{tag => ~"file", file => Filename};
+    D#{tag => <<"file">>, file => Filename};
 test_info(#{desc := <<"directory \"", Rest/binary>>} = D) ->
     Size = byte_size(Rest) - 1,
     Filename = binary_part(Rest, 0, Size),
-    D#{tag => ~"directory", file => Filename};
+    D#{tag => <<"directory">>, file => Filename};
 test_info(#{desc := <<"application \"", _Rest/binary>>} = D) ->
     % TODO: Get app filename
-    D#{tag => ~"application", file => ~"./"};
+    D#{tag => <<"application">>, file => <<"./">>};
 test_info(#{desc := undefined} = D) ->
-    D#{tag => ~"unknown", file => none}.
+    D#{tag => <<"unknown">>, file => none}.
 
 guess_ln({M, F, A}) ->
     case fun_line(mod_ast(M), F, A) of
@@ -152,7 +151,7 @@ print_header() ->
     ok.
 
 print_groups(Groups) ->
-    do_print_groups(lists:enumerate(orddict:to_list(Groups)), 0).
+    do_print_groups(enumerate(orddict:to_list(Groups)), 0).
 
 print_footer(Data, Time) ->
     Order = [fail, pass, skip, cancel],
@@ -163,7 +162,7 @@ print_footer(Data, Time) ->
             ok;
         false ->
             Init = [{{fmt, "~p total", [Total]}, {fg, white}}],
-            Info = lists:join(~", ", lists:foldl(fun
+            Info = lists:join(<<", ">>, lists:foldl(fun
                 ({_, 0}, Acc) ->
                     Acc;
                 ({fail, N}, Acc) ->
@@ -176,25 +175,23 @@ print_footer(Data, Time) ->
                     [{{fmt, "~p cancelled", [N]}, [{fg, bright_black}]} | Acc]
             end, Init, lists:reverse(Props))),
             doctest_term:write([
-                ~"\n\n",
-                {~"Tests: ", bold}, Info,
-                ~"\n",
-                {~" Time: ", bold}, {to_bin, Time / 1000}, ~" seconds",
-                ~"\n\n"
+                <<"\n\n">>,
+                {<<"Tests: ">>, bold}, Info,
+                <<"\n">>,
+                {<<" Time: ">>, bold}, {to_bin, Time / 1000}, <<" seconds">>,
+                <<"\n\n">>
             ])
     end.
 
 do_print_groups([{_I, {_Id, [_Data, []]}} | T], Time) ->
     do_print_groups(T, Time);
 do_print_groups([{_I, {_Id, [Data, Tests]}} | T], Time) ->
-    print_test(lists:enumerate(orddict:to_list(Tests))),
+    print_test(enumerate(orddict:to_list(Tests))),
     {time, GroupTime} = proplists:lookup(time, Data),
     do_print_groups(T, Time + GroupTime);
 do_print_groups([], Time) ->
     {ok, Time}.
 
-print_test([{_I, []} | T]) ->
-    print_test(T);
 print_test([{_I, {_Id, [#{status := ok} = Test]}} | T]) ->
     print_test_pass(Test),
     print_output(Test),
@@ -212,30 +209,30 @@ print_test([]) ->
 
 print_test_pass(#{tag := Tag, title := Title}) ->
     doctest_term:write([
-        {~" PASS ", [bold, {fg, white}, {bg, green}]},
-        ~"\s",
+        {<<" PASS ">>, [bold, {fg, white}, {bg, green}]},
+        <<"\s">>,
         format_title(Title),
-        ~"\s",
+        <<"\s">>,
         format_tag(Tag)
     ]).
 
 print_test_skip(#{tag := Tag, title := Title}) ->
     doctest_term:write([
-        {~" SKIP ", [bold, {fg, white}, {bg, yellow}]},
-        ~"\s",
+        {<<" SKIP ">>, [bold, {fg, white}, {bg, yellow}]},
+        <<"\s">>,
         format_title(Title),
-        ~"\s",
+        <<"\s">>,
         format_tag(Tag)
     ]).
 
 print_test_fail(#{tag := Tag, title := Title, status := {error, Reason}} = Test) ->
     doctest_term:write([
-        {~" FAIL ", [bold, {fg, white}, {bg, red}]},
-        ~"\s",
+        {<<" FAIL ">>, [bold, {fg, white}, {bg, red}]},
+        <<"\s">>,
         format_title(Title),
-        ~"\s",
+        <<"\s">>,
         format_tag(Tag),
-        ~"\n\n"
+        <<"\n\n">>
     | format_error(Reason, Test)]).
 
 format_tag(Tag) ->
@@ -246,7 +243,7 @@ format_title(Title) ->
     Dirname = filename:dirname(Filename),
     Basename = filename:basename(Filename, ".erl"),
     [
-        {Dirname, {fg, bright_black}}, ~"/",
+        {Dirname, {fg, bright_black}}, <<"/">>,
         {Basename, bold},
         {{fmt, ".erl:~s", [Ln]}, {fg, bright_black}}
     ].
@@ -258,9 +255,9 @@ print_output(#{output := Out}) ->
         Comment ->
             Lns = binary:split(Comment, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]),
             doctest_term:write([
-                ~"\n\n",
-                lists:join(~"\n", lists:map(fun(Ln) ->
-                    [{~"%\s", {fg, bright_black}}, {Ln, {fg, bright_black}}]
+                <<"\n\n">>,
+                lists:join(<<"\n">>, lists:map(fun(Ln) ->
+                    [{<<"%\s">>, {fg, bright_black}}, {Ln, {fg, bright_black}}]
                 end, Lns))
             ])
     end.
@@ -283,24 +280,24 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
 
     Filename = maps:get(file, Test),
     Lns = readlines(Filename),
-    Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(ToLn)), ~"\s")),
+    Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(ToLn)), <<"\s">>)),
 
     Range = lists:map(fun({RLn, RExpr}) ->
-        [~"\s", {{to_bin, RLn}, {fg, red}}, ~"\s", {~"│", {fg, bright_black}}, ~"\s", RExpr, ~"\n"]
+        [<<"\s">>, {{to_bin, RLn}, {fg, red}}, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\s">>, RExpr, <<"\n">>]
     end, range(FromLn, ToLn, Lns)),
 
     [
-        ~"\s", Pd, ~"\s❌\s", {{to_bin, ErrReason}, {fg, bright_black}}, ~"\n",
-        ~"\n",
-        ~"\s", Pd, ~"\sExpected: ", {{fmt, "~tp", [Left]}, {fg, green}}, ~"\n",
-        ~"\s", Pd, ~"\sReceived: ", {{fmt, "~tP", [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, ~"\n",
-        ~"\n",
+        <<"\s">>, Pd, <<"\s❌\s">>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
+        <<"\n">>,
+        <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, "~tp", [Left]}, {fg, green}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, "~tP", [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
+        <<"\n">>,
         format_pre_code(Test, Pd),
-        ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
+        <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
         Range,
-        ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
-        ~"\s", Pd, ~"\s", {~"└── at ", {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}},
-        ~"\n"
+        <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\s">>, {<<"└── at ">>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}},
+        <<"\n">>
     ].
 
 print_test({ErrReason, Info}, Test, _Stacktrace) ->
@@ -328,27 +325,27 @@ print_test({ErrReason, Info}, Test, _Stacktrace) ->
             Lns = readlines(Filename),
             LnExpr = lists:nth(Ln, Lns),
 
-            Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), ~"\s")),
+            Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), <<"\s">>)),
 
             [
-                ~"\s", Pd, ~"\s❌\s", {{to_bin, ErrReason}, {fg, bright_black}}, ~"\n",
-                ~"\n",
-                ~"\s", Pd, ~"\sExpected: ", {{fmt, LeftFmt, [Left]}, {fg, green}}, ~"\n",
-                ~"\s", Pd, ~"\sReceived: ", {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, ~"\n",
-                ~"\n",
+                <<"\s">>, Pd, <<"\s❌\s">>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
+                <<"\n">>,
+                <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
+                <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
+                <<"\n">>,
                 format_pre_code(Test, Pd),
-                ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
-                ~"\s", {{to_bin, Ln}, {fg, red}}, ~"\s", {~"│", {fg, bright_black}}, ~"\s", LnExpr, ~"\n",
-                ~"\s", Pd, ~"\s", {~"│", {fg, bright_black}}, ~"\n",
-                ~"\s", Pd, ~"\s", {~"└── at ", {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
-                ~"\n"
+                <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
+                <<"\s">>, {{to_bin, Ln}, {fg, red}}, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\s">>, LnExpr, <<"\n">>,
+                <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
+                <<"\s">>, Pd, <<"\s">>, {<<"└── at ">>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
+                <<"\n">>
             ];
         false ->
             [
-                ~"\s\s\s❌\s", {{to_bin, ErrReason}, {fg, bright_black}}, ~"\n",
-                ~"\n",
-                ~"\s\s\s", {{fmt, "~tp", [Info]}, {fg, red}},
-                ~"\n"
+                <<"\s\s\s❌\s">>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
+                <<"\n">>,
+                <<"\s\s\s">>, {{fmt, "~tp", [Info]}, {fg, red}},
+                <<"\n">>
             ]
     end.
 
@@ -371,3 +368,12 @@ format_pre_code(#{tag := "-doc"}, Pd) ->
     {io_lib:format("\s~s\s-doc\n", [Pd]), {fg, bright_black}};
 format_pre_code(#{}, _Pd) ->
     "".
+
+% Not using lists:enumerate from OTP just for compatibility reasons.
+enumerate(List) ->
+    do_enumerate(List, 1).
+
+do_enumerate([H | T], I) ->
+    [{I, H} | do_enumerate(T, I+1)];
+do_enumerate([], _I) ->
+    [].

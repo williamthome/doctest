@@ -1,4 +1,18 @@
-%%%---------------------------------------------------------------------
+%%% ---------------------------------------------------------------------
+%%% @copyright 2024 William Fank Thomé
+%%% @doc Generate tests for doc attributes via parse transform.
+%%%
+%%% Just plug the header on your module:
+%%% ```
+%%% -ifdef(TEST).
+%%% -include_lib("doctest/include/doctest.hrl").
+%%% -doctest <options> % optional
+%%% -endif.
+%%% '''
+%%%
+%%% @author William Fank Thomé [https://github.com/williamthome]
+%%% @end
+%%% ---------------------------------------------------------------------
 %%% Copyright 2024 William Fank Thomé
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +28,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_transform).
--moduledoc """
-Generate tests for doc attributes via parse transform.
-
-Just plug the header on your module:
-```
--ifdef(TEST).
--include_lib("doctest/include/doctest.hrl").
--endif.
-```
-""".
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
 -export([parse_transform/2]).

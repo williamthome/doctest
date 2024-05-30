@@ -14,7 +14,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_extract_attr).
--moduledoc false.
 -behaviour(doctest_extract).
 
 % API functions
@@ -43,19 +42,15 @@ chunks({Mod, Forms}) ->
                     doc_chunks(Mod, Docs)
             end;
         {error, missing} ->
-            error(debug_info, [{Mod, Forms}], [
-                {error_info, #{
-                    module => Mod,
-                    cause => "doctest requires 'debug_info' in compiler options"
-                }}
-            ]);
+            doctest_error:raise(debug_info, [{Mod, Forms}], #{
+                module => Mod,
+                cause => "doctest requires 'debug_info' in compiler options"
+            });
         {error, Reason} ->
-            error(Reason, [{Mod, Forms}], [
-                {error_info, #{
-                    module => Mod,
-                    cause => Reason
-                }}
-            ])
+            doctest_error:raise(Reason, [{Mod, Forms}], #{
+                module => Mod,
+                cause => Reason
+            })
     end.
 
 code_blocks(Markdown) ->
@@ -68,7 +63,7 @@ code_blocks(Markdown) ->
 moduledoc_chunk(Mod, Anno, Lang) ->
     case unwrap(Lang) of
         {ok, Doc} ->
-            {ok, {{moduledoc, Mod, ~"-moduledoc"}, erl_anno:line(Anno), Doc}};
+            {ok, {{moduledoc, Mod, <<"-moduledoc">>}, erl_anno:line(Anno), Doc}};
         none ->
             none
     end.
@@ -76,7 +71,7 @@ moduledoc_chunk(Mod, Anno, Lang) ->
 doc_chunk(MFA, Anno, Lang) ->
     case unwrap(Lang) of
         {ok, Doc} ->
-            {ok, {{doc, MFA, ~"-doc"}, erl_anno:line(Anno), Doc}};
+            {ok, {{doc, MFA, <<"-doc">>}, erl_anno:line(Anno), Doc}};
         none ->
             none
     end.

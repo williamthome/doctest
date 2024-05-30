@@ -13,9 +13,27 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(doctest_test).
+-module(doctest_error).
 
--include_lib("eunit/include/eunit.hrl").
+% API functions
+-export([raise/3]).
 
-module_test() ->
-    ?assertEqual(ok, doctest:module(doctest_test_module)).
+-include("src/doctest_check.hrl").
+
+%%%=====================================================================
+%%% API functions
+%%%=====================================================================
+
+-if(?IS_ERROR_INFO_SUPPORTED).
+raise(Reason, Attrs, Info) ->
+    error(Reason, Attrs, [{error_info, Info}]).
+-else.
+raise(Reason, Attrs, Info) ->
+    error({Reason, Info}, Attrs).
+-endif.
+
+%%%=====================================================================
+%%% Internal functions
+%%%=====================================================================
+
+% nothing here yet!

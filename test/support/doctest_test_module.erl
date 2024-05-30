@@ -14,6 +14,9 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_test_module).
+-include("src/doctest_check.hrl").
+
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -moduledoc """
 Module doc tags can also be tested.
 
@@ -28,10 +31,11 @@ false
 true
 ```
 """.
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
+-endif.
 
 -export([foo/0, bar/0]).
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 Foo
 ```erlang
@@ -45,6 +49,7 @@ Bar
 true
 ```
 """.
+-endif.
 foo() ->
     foo.
 

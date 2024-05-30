@@ -14,7 +14,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_extract).
--moduledoc false.
 
 % API functions
 -export([ module_tests/2
@@ -48,15 +47,7 @@
 -type code_blocks() :: [{binary(), location()}] | none.
 -type location() :: {Ln :: pos_integer(), Col :: pos_integer()}.
 
--ifdef(OTP_RELEASE).
-    -if(?OTP_RELEASE < 27).
-        -define(MARKDOWN_SUPPORTED, false).
-    -else.
-        -define(MARKDOWN_SUPPORTED, true).
-    -endif.
--else.
-    -define(MARKDOWN_SUPPORTED, false).
--endif.
+-include("src/doctest_check.hrl").
 
 %%%=====================================================================
 %%% API functions
@@ -81,9 +72,9 @@ code_blocks(Doc, RE) when is_binary(Doc) ->
             none
     end.
 
--if(?MARKDOWN_SUPPORTED).
+-if(?IS_DOC_ATTRS_SUPPORTED).
 default_extractors() ->
-    [doctest_extract_attr].
+    [doctest_extract_attr, doctest_extract_tag].
 -else.
 default_extractors() ->
     [doctest_extract_tag].

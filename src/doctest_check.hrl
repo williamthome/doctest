@@ -1,0 +1,19 @@
+-ifdef(OTP_RELEASE).
+    -if(?OTP_RELEASE < 27).
+        -define(IS_DOC_ATTRS_SUPPORTED, false).
+    -else.
+        -define(IS_DOC_ATTRS_SUPPORTED, true).
+    -endif.
+-else.
+    -define(IS_DOC_ATTRS_SUPPORTED, false).
+-endif.
+
+-ifdef(OTP_RELEASE).
+    -if(?OTP_RELEASE < 24).
+        -define(IS_ERROR_INFO_SUPPORTED, false).
+    -else.
+        -define(IS_ERROR_INFO_SUPPORTED, true).
+    -endif.
+-else.
+    -define(IS_ERROR_INFO_SUPPORTED, false).
+-endif.

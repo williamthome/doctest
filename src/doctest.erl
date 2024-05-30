@@ -1,3 +1,7 @@
+%%% ---------------------------------------------------------------------
+%%% @copyright 2024 William Fank Thomé
+%%% @doc Provides functions to test docs.
+%%% @end
 %%%---------------------------------------------------------------------
 %%% Copyright 2024 William Fank Thomé
 %%%
@@ -14,10 +18,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest).
--moduledoc """
-Provides `module/1` and `module/2` to test doc attributes.
-""".
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
 -export([module/1, module/2, forms/2]).
@@ -37,7 +37,6 @@ Provides `module/1` and `module/2` to test doc attributes.
 %%% API functions
 %%%=====================================================================
 
--doc #{ equiv => module(Mod, #{}) }.
 -spec module(Mod) -> Result when
       Mod :: module(),
       Result :: result().

@@ -2,24 +2,28 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
+  linux:
+    name: OTP ${{ matrix.otp_version }}
+    runs-on: ${{ matrix.os }}
 
-  build:
-
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otp_version: [23, 24, 25, 26, 27]
+        os: [ubuntu-latest]
 
     container:
-      image: erlang:27
+      image: erlang:${{ matrix.otp_version }}
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Compile
-      run: rebar3 compile
-    - name: Run tests
-      run: rebar3 do ct, eunit
-    - name: Run dialyzer
-      run: rebar3 dialyzer
+      - uses: actions/checkout@v2
+      - name: Compile
+        run: rebar3 compile
+      - name: Run tests
+        run: rebar3 do ct, eunit
+      - name: Run dialyzer
+        run: rebar3 dialyzer

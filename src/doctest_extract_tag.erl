@@ -14,7 +14,6 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_extract_tag).
--moduledoc false.
 -behaviour(doctest_extract).
 
 % API functions
@@ -61,10 +60,10 @@ do_chunks_2(Form, Forms, Mod, Comments) ->
     case erl_syntax_lib:analyze_form(Form) of
         {function, {Fun, Arity}} ->
             {Ln, Doc} = comment_text(Comments),
-            [{{doc, {Mod, Fun, Arity}, ~"@doc"}, Ln-1, Doc} | do_chunks_1(Forms, Mod)];
+            [{{doc, {Mod, Fun, Arity}, <<"@doc">>}, Ln-1, Doc} | do_chunks_1(Forms, Mod)];
         {attribute, {module, Mod}} ->
             {Ln, Doc} = comment_text(Comments),
-            [{{moduledoc, Mod, ~"@moduledoc"}, Ln-1, Doc} | do_chunks_1(Forms, Mod)];
+            [{{moduledoc, Mod, <<"@moduledoc">>}, Ln-1, Doc} | do_chunks_1(Forms, Mod)];
         _ ->
             do_chunks_1(Forms, Mod)
     end.
