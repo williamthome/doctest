@@ -63,15 +63,7 @@ code_blocks(Markdown) ->
 moduledoc_chunk(Mod, Anno, Lang) ->
     case unwrap(Lang) of
         {ok, Doc} ->
-            {ok, {{moduledoc, Mod, <<"-moduledoc">>}, erl_anno:line(Anno), Doc}};
-        none ->
-            none
-    end.
-
-doc_chunk(MFA, Anno, Lang) ->
-    case unwrap(Lang) of
-        {ok, Doc} ->
-            {ok, {{doc, MFA, <<"-doc">>}, erl_anno:line(Anno), Doc}};
+            {ok, {token(Mod), ln(Anno), Doc}};
         none ->
             none
     end.
@@ -88,6 +80,22 @@ doc_chunks(Mod, Docs) ->
         (_) ->
             false
     end, Docs).
+
+doc_chunk(MFA, Anno, Lang) ->
+    case unwrap(Lang) of
+        {ok, Doc} ->
+            {ok, {token(MFA), ln(Anno), Doc}};
+        none ->
+            none
+    end.
+
+token({Mod, Fun, Arity}) ->
+    {doc, {Mod, Fun, Arity}, <<"-doc">>};
+token(Mod) ->
+    {moduledoc, Mod, <<"-moduledoc">>}.
+
+ln(Anno) ->
+    erl_anno:line(Anno).
 
 % TODO: Language option.
 unwrap(#{<<"en">> := Markdown}) ->

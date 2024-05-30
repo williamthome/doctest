@@ -59,24 +59,29 @@ do_chunks_1([], _Mod) ->
 do_chunks_2(Form, Forms, Mod, Comments) ->
     case erl_syntax_lib:analyze_form(Form) of
         {function, {Fun, Arity}} ->
-            {Ln, Doc} = comment_text(Comments),
-            [{{doc, {Mod, Fun, Arity}, <<"@doc">>}, Ln-1, Doc} | do_chunks_1(Forms, Mod)];
+            [chunk({Mod, Fun, Arity}, Comments) | do_chunks_1(Forms, Mod)];
         {attribute, {module, Mod}} ->
-            {Ln, Doc} = comment_text(Comments),
-            [{{moduledoc, Mod, <<"@moduledoc">>}, Ln-1, Doc} | do_chunks_1(Forms, Mod)];
+            [chunk(Mod, Comments) | do_chunks_1(Forms, Mod)];
         _ ->
             do_chunks_1(Forms, Mod)
     end.
 
-comment_text(Cs) ->
-    {get_line(hd(Cs)), iolist_to_binary(lists:join($\n, lists:map(fun(C) ->
-        lists:join($\n, [remove_percent_chars(S) || S <- erl_syntax:comment_text(C)])
-    end, Cs)))}.
+chunk(Data, Comments) ->
+    {token(Data), ln(Comments), doc(Comments)}.
 
-get_line(Tree) ->
-    Anno = erl_syntax:get_pos(Tree),
-    erl_anno:line(Anno).
+token({Mod, Fun, Arity}) ->
+    {doc, {Mod, Fun, Arity}, <<"@doc">>};
+token(Mod) ->
+    {moduledoc, Mod, <<"@moduledoc">>}.
 
-remove_percent_chars([$% | Cs]) -> remove_percent_chars(Cs);
-remove_percent_chars([$\s | Cs]) -> Cs;
-remove_percent_chars(Cs) -> Cs.
+doc(Comments) ->
+    iolist_to_binary(lists:join($\n, lists:map(fun(C) ->
+        lists:join($\n, [rm_percentage(T) || T <- erl_syntax:comment_text(C)])
+    end, Comments))).
+
+rm_percentage([$% | Cs]) -> rm_percentage(Cs);
+rm_percentage([$\s | Cs]) -> Cs;
+rm_percentage(Cs) -> Cs.
+
+ln([H|_]) ->
+    erl_anno:line(erl_syntax:get_pos((H))) - 1.
