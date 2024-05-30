@@ -16,7 +16,7 @@
 -module(doctest_extract_attr).
 -behaviour(doctest_extract).
 
-% API functions
+% doctest_extract callbacks
 -export([chunks/1, code_blocks/1]).
 
 -define(CODE_BLOCK_RE,
@@ -29,7 +29,7 @@
 -include_lib("kernel/include/eep48.hrl").
 
 %%%=====================================================================
-%%% API functions
+%%% doctest_extract callbacks
 %%%=====================================================================
 
 chunks({Mod, Forms}) ->

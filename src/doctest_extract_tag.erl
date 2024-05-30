@@ -16,7 +16,7 @@
 -module(doctest_extract_tag).
 -behaviour(doctest_extract).
 
-% API functions
+% doctest_extract callbacks
 -export([chunks/1, code_blocks/1]).
 
 -define(CODE_BLOCK_RE,
@@ -26,7 +26,7 @@
 ).
 
 %%%=====================================================================
-%%% API functions
+%%% doctest_extract callbacks
 %%%=====================================================================
 
 chunks({Mod, Forms}) ->
