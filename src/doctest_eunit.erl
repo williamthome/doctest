@@ -175,14 +175,14 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
                         end})
                         catch
                             error:undef:Stacktrace ->
-                                throw({error, {eval, Left, Bindings, Stacktrace}});
+                                throw({error, {eval, pp(Left), Bindings, Stacktrace}});
                             Class:Reason:Stacktrace ->
                                 erlang:raise(Class, Reason, Stacktrace)
                         end,
                     {RightValue, []} = eval(Right, []),
                     Test = Callback(
-                        {Left, LeftLn, LeftValue},
-                        {Right, RightLn, RightValue}
+                        {pp(Left), LeftLn, LeftValue},
+                        {pp(Right), RightLn, RightValue}
                     ),
                     {NewBindings, [Test | Acc1]}
                 end, {[], Acc}, lists:reverse(Asserts))));
@@ -194,14 +194,15 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
 desc(Tag, Mod, Ln) ->
     iolist_to_binary(io_lib:format("doctest ~s\s~s", [Tag, test_title(Mod, Ln)])).
 
-eval(Bin, Bindings) ->
-    eval(Bin, Bindings, none).
+eval(Exprs, Bindings) ->
+    eval(Exprs, Bindings, none).
 
-eval(Bin, Bindings, LocalFunctionHandler) ->
-    {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Bin/binary, $.>>)),
-    {ok, Exprs} = erl_parse:parse_exprs(Tokens),
+eval(Exprs, Bindings, LocalFunctionHandler) ->
     {value, Value, NewBindings} = erl_eval:exprs(Exprs, Bindings, LocalFunctionHandler),
     {Value, NewBindings}.
+
+pp(Exprs) ->
+    iolist_to_binary(erl_pp:exprs(Exprs)).
 
 code_block_asserts(CodeBlock, InitLn) ->
     case chunks(split_lines(CodeBlock)) of
@@ -246,9 +247,9 @@ asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
 asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
     case check_left_index(N, I) of
         ok when T =:= [] ->
-            {ok, [{{pp(L), Ln}, {R, NLn+1}} | Acc]};
+            {ok, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]};
         ok ->
-            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{pp(L), Ln}, {R, NLn+1}} | Acc]);
+            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
             Received = iolist_to_binary([N, "> ", H]),
@@ -270,10 +271,10 @@ scan(Expr) when is_binary(Expr) ->
 scan(Expr) ->
     Expr.
 
-pp(Tokens) ->
+parse(Tokens) ->
     DotTokens = lists:flatten([scan(Tokens), scan(<<".">>)]),
     {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
-    iolist_to_binary(erl_pp:exprs(Exprs)).
+    Exprs.
 
 check_more_format(Ws, Ln) ->
     LnSz = max(0, byte_size(Ln) - 1),
