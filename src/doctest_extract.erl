@@ -19,23 +19,33 @@
 % API functions
 -export([ module_tests/2
         , forms_tests/2
-        , compile_forms/1
         , code_blocks/2
         , default_extractors/0
         ]).
 
-% TODO: Fix callbacks
-% -callback extract_module_tests(Mod, ShouldTestModDoc, FunsOpts) -> Result when
-%           Mod :: module(),
-%           ShouldTestModDoc :: boolean(),
-%           FunsOpts :: boolean() | [{FunName, FunArity}],
-%           FunName :: atom(),
-%           FunArity :: arity(),
-%           Result :: {ok, Tests} | {error, term()},
-%           Tests :: list().
+-export_type([ doc_token/0
+             , moduledoc_token/0
+             , token/0
+             , chunk/0
+             , code_blocks/0
+             , location/0
+             ]).
 
--callback code_blocks(binary()) -> code_blocks().
+-callback chunks(Args) -> Chunks when
+          Args :: {Mod, Bin, Forms},
+          Mod :: module(),
+          Bin :: binary(),
+          Forms :: [erl_syntax:syntaxTree()],
+          Chunks :: [chunk()].
 
+-callback code_blocks(Doc) -> CodeBlocks when
+          Doc :: binary(),
+          CodeBlocks :: code_blocks().
+
+-type doc_token() :: {doc, mfa(), Tag :: binary()}.
+-type moduledoc_token() :: {moduledoc, module(), Tag :: binary()}.
+-type token() :: doc_token() | moduledoc_token().
+-type chunk() :: {token(), Ln :: pos_integer(), Doc :: binary()}.
 -type code_blocks() :: [{binary(), location()}] | none.
 -type location() :: {Ln :: pos_integer(), Col :: pos_integer()}.
 
@@ -58,15 +68,9 @@ module_tests(Mod, Opts) when is_atom(Mod) ->
 
 forms_tests(Forms, Opts) when is_map(Opts) ->
     {ok, Mod, Bin} = compile_forms(Forms),
-    Extractors = maps:get(extractors, Opts, default_extractors()),
-    {test_desc(Mod), all_test_cases(Extractors, {Mod, Bin, Forms}, Opts)}.
-
-compile_forms(Forms) when is_list(Forms) ->
-    compile:forms(Forms, [
-        binary,
-        debug_info,
-        {i, "eunit/include/eunit.hrl"}
-    ]).
+    Extractors = extractors(Opts),
+    ExtractorsArgs = {Mod, Bin, Forms},
+    {test_desc(Mod), all_test_cases(Extractors, ExtractorsArgs, Opts)}.
 
 code_blocks(Doc, RE) when is_binary(Doc) ->
     case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of
@@ -93,6 +97,18 @@ module_forms(Mod) ->
     {ok, {Mod, [{abstract_code, {_, AST}}]}} =
         beam_lib:chunks(code:which(Mod), [abstract_code]),
     AST.
+
+compile_forms(Forms) when is_list(Forms) ->
+    compile:forms(Forms, [
+        binary,
+        debug_info,
+        {i, "eunit/include/eunit.hrl"}
+    ]).
+
+extractors(#{extractors := []}) ->
+    default_extractors();
+extractors(#{extractors := Extractors}) when is_list(Extractors) ->
+    Extractors.
 
 test_desc(Mod) ->
     iolist_to_binary(io_lib:format("module '~w'", [Mod])).

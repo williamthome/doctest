@@ -22,6 +22,8 @@ Provides `module/1` and `module/2` to test doc attributes.
 % API functions
 -export([module/1, module/2, forms/2]).
 
+-export_type([options/0, result/0]).
+
 -type options() :: #{
     enabled => boolean(),
     moduledoc => boolean(),
@@ -29,7 +31,7 @@ Provides `module/1` and `module/2` to test doc attributes.
     eunit => resolve | [term()],
     extractors => [module()]
 }.
--type test_result() :: ok | error.
+-type result() :: ok | error.
 
 %%%=====================================================================
 %%% API functions
@@ -38,7 +40,7 @@ Provides `module/1` and `module/2` to test doc attributes.
 -doc #{ equiv => module(Mod, #{}) }.
 -spec module(Mod) -> Result when
       Mod :: module(),
-      Result :: test_result().
+      Result :: result().
 
 module(Mod) ->
     module(Mod, #{}).
@@ -46,7 +48,7 @@ module(Mod) ->
 -spec module(Mod, Opts) -> Result when
       Mod :: module(),
       Opts :: options(),
-      Result :: test_result().
+      Result :: result().
 
 module(Mod, Opts) ->
     run(module_tests, Mod, Opts).
@@ -54,7 +56,7 @@ module(Mod, Opts) ->
 -spec forms(Forms, Opts) -> Result when
       Forms :: [erl_syntax:syntaxTree()],
       Opts :: options(),
-      Result :: test_result().
+      Result :: result().
 
 forms(Forms, Opts) ->
     run(forms_tests, Forms, Opts).
@@ -83,5 +85,5 @@ parse_opts(Opts) when is_map(Opts) ->
         eunit => maps:get(eunit, Opts,
             proplists:get_value(eunit, Env, resolve)),
         extractors => maps:get(extractors, Opts,
-            proplists:get_value(extractors, Env, doctest_extract:default_extractors()))
+            proplists:get_value(extractors, Env, []))
     }.
