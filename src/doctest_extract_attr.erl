@@ -33,7 +33,7 @@
 %%% API functions
 %%%=====================================================================
 
-chunks({Mod, Bin, Forms}) ->
+chunks({Mod, Forms}) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
             case moduledoc_chunk(Mod, Anno, Lang) of
@@ -43,9 +43,19 @@ chunks({Mod, Bin, Forms}) ->
                     doc_chunks(Mod, Docs)
             end;
         {error, missing} ->
-            error({nodebug_info, "add 'debug_info' to the compiler flags"}, [{Mod, Bin, Forms}]);
+            error(debug_info, [{Mod, Forms}], [
+                {error_info, #{
+                    module => Mod,
+                    cause => "doctest requires 'debug_info' in compiler options"
+                }}
+            ]);
         {error, Reason} ->
-            error(Reason, [{Mod, Bin, Forms}])
+            error(Reason, [{Mod, Forms}], [
+                {error_info, #{
+                    module => Mod,
+                    cause => Reason
+                }}
+            ])
     end.
 
 code_blocks(Markdown) ->

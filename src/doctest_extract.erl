@@ -32,9 +32,8 @@
              ]).
 
 -callback chunks(Args) -> Chunks when
-          Args :: {Mod, Bin, Forms},
+          Args :: {Mod, Forms},
           Mod :: module(),
-          Bin :: binary(),
           Forms :: [erl_syntax:syntaxTree()],
           Chunks :: [chunk()].
 
@@ -67,10 +66,9 @@ module_tests(Mod, Opts) when is_atom(Mod) ->
     forms_tests(module_forms(Mod), Opts).
 
 forms_tests(Forms, Opts) when is_map(Opts) ->
-    {ok, Mod, Bin} = compile_forms(Forms),
+    Mod = doctest_forms:module(Forms),
     Extractors = extractors(Opts),
-    ExtractorsArgs = {Mod, Bin, Forms},
-    {test_desc(Mod), all_test_cases(Extractors, ExtractorsArgs, Opts)}.
+    {test_desc(Mod), all_test_cases(Extractors, {Mod, Forms}, Opts)}.
 
 code_blocks(Doc, RE) when is_binary(Doc) ->
     case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of
@@ -97,13 +95,6 @@ module_forms(Mod) ->
     {ok, {Mod, [{abstract_code, {_, AST}}]}} =
         beam_lib:chunks(code:which(Mod), [abstract_code]),
     AST.
-
-compile_forms(Forms) when is_list(Forms) ->
-    compile:forms(Forms, [
-        binary,
-        debug_info,
-        {i, "eunit/include/eunit.hrl"}
-    ]).
 
 extractors(#{extractors := []}) ->
     default_extractors();
