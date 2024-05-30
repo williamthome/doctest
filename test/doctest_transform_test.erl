@@ -13,12 +13,12 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(doctest_parse_transform_test).
+-module(doctest_transform_test).
 -moduledoc """
 Module doc tags can also be tested.
 
 ```erlang
-1> doctest_parse_transform_test:sum(1, 1) =:= 2.
+1> doctest_transform_test:sum(1, 1) =:= 2.
 true
 ```
 """.
@@ -33,9 +33,9 @@ true
 
 -doc """
 ```erlang
-1> doctest_parse_transform_test:sum(1, 1).
+1> doctest_transform_test:sum(1, 1).
 2
-2> doctest_parse_transform_test:sum(1,
+2> doctest_transform_test:sum(1,
 .. 2).
 3
 ```
@@ -45,9 +45,9 @@ sum(A, B) ->
 
 -doc """
 ```erlang
-1> doctest_parse_transform_test:mult(1, 1).
+1> doctest_transform_test:mult(1, 1).
 1
-2> doctest_parse_transform_test:mult(1,
+2> doctest_transform_test:mult(1,
 .. 2).
 2
 ```
@@ -76,7 +76,7 @@ notestcodeblock() ->
 ```erlang
 1> Foo = "foo".
 "foo"
-2> doctest_parse_transform_test:concat(
+2> doctest_transform_test:concat(
 .. Foo,
 ..   "bar"
 .. ).

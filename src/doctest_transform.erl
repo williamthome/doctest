@@ -13,7 +13,7 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(doctest_parse_transform).
+-module(doctest_transform).
 -moduledoc """
 Generate tests for doc attributes via parse transform.
 
