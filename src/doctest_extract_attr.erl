@@ -87,5 +87,7 @@ doc_chunks(Mod, Docs) ->
 % TODO: Language option.
 unwrap(#{<<"en">> := Markdown}) ->
     {ok, Markdown};
+unwrap(hidden) ->
+    none;
 unwrap(none) ->
     none.
