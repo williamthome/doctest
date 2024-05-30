@@ -21,8 +21,9 @@ Module doc tags can also be tested.
 1> doctest_test_module:foo()
 .. =:= bar.
 false
-2> doctest_test_module:foo()
-.. =:=
+2>                           % Are comments allowed? Yes! But only in
+.. doctest_test_module:foo() % expressions, not at the last line, and
+.. =:=                       % not in results, like the lines below.
 .. foo.
 true
 ```

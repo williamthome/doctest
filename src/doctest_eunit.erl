@@ -203,7 +203,6 @@ code_block_asserts(CodeBlock, InitLn) ->
 split_lines(CodeBlock) ->
     binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
 
-% TODO: Allow comments
 chunks(Parts) ->
     Opts = [{capture, all_but_first, binary}],
     lists:map(fun(Part) ->
@@ -223,7 +222,7 @@ chunks(Parts) ->
 asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
     case check_more_format(Ws, N) of
         ok ->
-            asserts([{left, {N, <<L/binary, M/binary>>}} | T], HI, {Ln, NLn+1}, Acc);
+            asserts([{left, {N, [scan(L), scan(M)]}} | T], HI, {Ln, NLn+1}, Acc);
         {error, {EWs, RWs}} ->
             Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), "..> ", M]),
             Received = iolist_to_binary([lists:duplicate(RWs, "\s"), "..> ", M]),
@@ -236,9 +235,9 @@ asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
 asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
     case check_left_index(N, I) of
         ok when T =:= [] ->
-            {ok, [{{L, Ln}, {R, NLn+1}} | Acc]};
+            {ok, [{{pp(L), Ln}, {R, NLn+1}} | Acc]};
         ok ->
-            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{L, Ln}, {R, NLn+1}} | Acc]);
+            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{pp(L), Ln}, {R, NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
             Received = iolist_to_binary([N, "> ", H]),
@@ -253,6 +252,17 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
 %     bar.
 asserts(_, _, _, _) ->
     {ok, []}.
+
+scan(Expr) when is_binary(Expr) ->
+    {ok, T, _} = erl_scan:string(binary_to_list(Expr)),
+    T;
+scan(Expr) ->
+    Expr.
+
+pp(Tokens) ->
+    DotTokens = lists:flatten([scan(Tokens), scan(<<".">>)]),
+    {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
+    iolist_to_binary(erl_pp:exprs(Exprs)).
 
 check_more_format(Ws, Ln) ->
     LnSz = max(0, byte_size(Ln) - 1),
