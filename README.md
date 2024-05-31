@@ -213,15 +213,16 @@ Take this module:
 
 As mentioned before, there are two ways to run the tests.
 - Via `doctest:module/1,2` in the Erlang shell, e.g.:
-    ```erlang
+    ```shell
     $ rebar3 as test shell
-
+    ```
+    ```erlang
     1> doctest:module(greeting).
     ```
 - Or via `rebar3 eunit`
 
 Both produce the same output:
-```erlang
+```shell
  PASS  ./src/greeting.erl:6 -moduledoc
  FAIL  ./src/greeting.erl:19 -doc
 
