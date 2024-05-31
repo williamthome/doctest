@@ -103,9 +103,9 @@ The options are passed via a map:
     % Default: true.
     funs => boolean() | [{atom(), arity()}],
 
-    % Set the EUnit options. 'resolve' tries to resolve the rebar3 options.
-    % Default: resolve.
-    eunit => resolve | [term()],
+    % Set the EUnit options. 'rebar3_config' tries to resolve the options defined in the rebar3.
+    % Default: rebar3_config.
+    eunit_opts => rebar3_config | [term()],
 
     % Overrides the code blocks extractors. See the 'doctest_extract' behavior. Custom extractors are allowed.
     % Default:
@@ -132,9 +132,9 @@ In a module, the `-doctest` attribute is used to override the default settings v
   ```erlang
   -doctest [print/0].
   ```
-- `{eunit, resolve | term()}`: equivalent to eunit option.
+- `{eunit_opts, rebar3_config | term()}`: equivalent to eunit_opts option.
   ```erlang
-  -doctest {eunit, resolve}.
+  -doctest {eunit_opts, rebar3_config}.
   ```
 - `{extractors, [module()]}`: equivalent to extractors option.
   ```erlang
@@ -154,7 +154,7 @@ Options can be globally defined via a [config file](https://www.erlang.org/doc/m
     {enabled, true},
     {moduledoc, true},
     {funs, true},
-    {eunit, resolve},
+    {eunit_opts, rebar3_config},
     {extractors, [doctest_extract_attr, doctest_extract_tag]}
 ]}].
 ```

@@ -71,8 +71,8 @@ parse_opts([{funs, Enabled} | T], Opts) when is_boolean(Enabled) ->
     parse_opts(T, Opts#{funs => Enabled});
 parse_opts([{funs, Funs} | T], Opts) when is_list(Funs) ->
     parse_opts(T, Opts#{funs => Funs});
-parse_opts([{eunit, Eunit} | T], Opts) ->
-    parse_opts(T, Opts#{eunit => Eunit});
+parse_opts([{eunit_opts, EunitOpts} | T], Opts) ->
+    parse_opts(T, Opts#{eunit_opts => EunitOpts});
 parse_opts([{extractors, Extractors} | T], Opts) when is_list(Extractors) ->
     parse_opts(T, Opts#{extractors => Extractors});
 parse_opts([Map | T], Opts) when is_map(Map) ->
