@@ -283,20 +283,20 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
     Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(ToLn)), <<"\s">>)),
 
     Range = lists:map(fun({RLn, RExpr}) ->
-        [<<"\s">>, {{to_bin, RLn}, {fg, red}}, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\s">>, RExpr, <<"\n">>]
+        [<<"\s">>, {{to_bin, RLn}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, RExpr, <<"\n">>]
     end, range(FromLn, ToLn, Lns)),
 
     [
-        <<"\s">>, Pd, <<"\s❌\s">>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
         <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, "~tp", [Left]}, {fg, green}}, <<"\n">>,
         <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, "~tP", [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
         <<"\n">>,
         format_pre_code(Test, Pd),
-        <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
         Range,
-        <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\s">>, {<<"└── at ">>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}},
+        <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}},
         <<"\n">>
     ].
 
@@ -328,21 +328,21 @@ print_test({ErrReason, Info}, Test, _Stacktrace) ->
             Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), <<"\s">>)),
 
             [
-                <<"\s">>, Pd, <<"\s❌\s">>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
+                <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
                 <<"\n">>,
                 <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
                 <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
                 <<"\n">>,
                 format_pre_code(Test, Pd),
-                <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
-                <<"\s">>, {{to_bin, Ln}, {fg, red}}, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\s">>, LnExpr, <<"\n">>,
-                <<"\s">>, Pd, <<"\s">>, {<<"│">>, {fg, bright_black}}, <<"\n">>,
-                <<"\s">>, Pd, <<"\s">>, {<<"└── at ">>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
+                <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
+                <<"\s">>, {{to_bin, Ln}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, LnExpr, <<"\n">>,
+                <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
+                <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
                 <<"\n">>
             ];
         false ->
             [
-                <<"\s\s\s❌\s">>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
+                <<"\s\s\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
                 <<"\n">>,
                 <<"\s\s\s">>, {{fmt, "~tp", [Info]}, {fg, red}},
                 <<"\n">>
