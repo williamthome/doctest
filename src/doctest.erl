@@ -1,3 +1,7 @@
+%%% ---------------------------------------------------------------------
+%%% @copyright 2024 William Fank Thomé
+%%% @doc Provides functions to test docs.
+%%% @end
 %%%---------------------------------------------------------------------
 %%% Copyright 2024 William Fank Thomé
 %%%
@@ -14,50 +18,71 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest).
--moduledoc """
-Provides `module/1` and `module/2` to test doc attributes.
-""".
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
 
 % API functions
--export([module/1, module/2]).
+-export([module/1, module/2, forms/2]).
 
-% Check OTP version >= 27.
--include("doctest_otp_check.hrl").
+-export_type([options/0, result/0]).
 
 -type options() :: #{
+    enabled => boolean(),
     moduledoc => boolean(),
     funs => boolean() | [{atom(), arity()}],
-    eunit => resolve | [term()]
+    eunit => resolve | [term()],
+    extractors => [module()]
 }.
--type test_result() :: ok | error | {error, term()}.
+-type result() :: ok | error.
 
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
--doc #{ equiv => module(Mod, #{}) }.
--spec module(module()) -> test_result().
+-spec module(Mod) -> Result when
+      Mod :: module(),
+      Result :: result().
 
 module(Mod) ->
     module(Mod, #{}).
 
--spec module(module(), options()) -> test_result().
+-spec module(Mod, Opts) -> Result when
+      Mod :: module(),
+      Opts :: options(),
+      Result :: result().
 
-module(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
-    Env = application:get_all_env(doctest),
-    ShouldTestModDoc = maps:get(moduledoc, Opts, proplists:get_value(moduledoc, Env, true)),
-    FunsOpts = maps:get(funs, Opts, proplists:get_value(funs, Env, true)),
-    case doctest_parse:module_tests(Mod, ShouldTestModDoc, FunsOpts) of
-        {ok, Tests} ->
-            EunitOpts = maps:get(eunit, Opts, proplists:get_value(eunit, Env, resolve)),
-            doctest_eunit:test(Tests, EunitOpts);
-        {error, Reason} ->
-            {error, Reason}
-    end.
+module(Mod, Opts) ->
+    run(module_tests, Mod, Opts).
+
+-spec forms(Forms, Opts) -> Result when
+      Forms :: [erl_syntax:syntaxTree()],
+      Opts :: options(),
+      Result :: result().
+
+forms(Forms, Opts) ->
+    run(forms_tests, Forms, Opts).
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
 
-% nothing here yet!
+run(Fun, Payload, Opts) ->
+    do_run(parse_opts(Opts), Fun, Payload).
+
+do_run(#{enabled := true, eunit := EunitOpts} = Opts, Fun, Payload) ->
+    doctest_eunit:test(doctest_extract:Fun(Payload, Opts), EunitOpts);
+do_run(#{enabled := false}, _, _) ->
+    ok.
+
+parse_opts(Opts) when is_map(Opts) ->
+    Env = application:get_all_env(doctest),
+    #{
+        enabled => maps:get(enabled, Opts,
+            proplists:get_value(enabled, Env, true)),
+        moduledoc => maps:get(moduledoc, Opts,
+            proplists:get_value(moduledoc, Env, true)),
+        funs => maps:get(funs, Opts,
+            proplists:get_value(funs, Env, true)),
+        eunit => maps:get(eunit, Opts,
+            proplists:get_value(eunit, Env, resolve)),
+        extractors => maps:get(extractors, Opts,
+            proplists:get_value(extractors, Env, []))
+    }.

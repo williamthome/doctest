@@ -13,35 +13,27 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(foo).
--moduledoc """
-Module doc tags can also be tested.
+-module(doctest_error).
 
-```erlang
-1> foo:foo()
-.. =:= bar.
-false
-2> foo:foo()
-.. =:=
-.. foo.
-true
-```
-""".
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
+% API functions
+-export([raise/3]).
 
--export([foo/0]).
+-include("src/doctest_check.hrl").
 
--doc """
-Foo
-```erlang
-1> foo:foo().
-foo
-```
-Bar
-```erlang
-1> foo:foo() =:= foo.
-true
-```
-""".
-foo() ->
-    foo.
+%%%=====================================================================
+%%% API functions
+%%%=====================================================================
+
+-if(?IS_ERROR_INFO_SUPPORTED).
+raise(Reason, Attrs, Info) ->
+    error(Reason, Attrs, [{error_info, Info}]).
+-else.
+raise(Reason, Attrs, Info) ->
+    error({Reason, Info}, Attrs).
+-endif.
+
+%%%=====================================================================
+%%% Internal functions
+%%%=====================================================================
+
+% nothing here yet!

@@ -13,16 +13,19 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
--module(doctest_parse_transform_test).
+-module(doctest_transform_test).
+-include("src/doctest_check.hrl").
+
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -moduledoc """
 Module doc tags can also be tested.
 
 ```erlang
-1> doctest_parse_transform_test:sum(1, 1) =:= 2.
+1> doctest_transform_test:sum(1, 1) =:= 2.
 true
 ```
 """.
--moduledoc #{ author => "William Fank Thomé [https://github.com/williamthome]" }.
+-endif.
 
 -export([sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2]).
 
@@ -31,57 +34,67 @@ true
 -doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2].
 -endif.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
-1> doctest_parse_transform_test:sum(1, 1).
+1> doctest_transform_test:sum(1, 1).
 2
-2> doctest_parse_transform_test:sum(1,
+2> doctest_transform_test:sum(1,
 .. 2).
 3
 ```
 """.
+-endif.
 sum(A, B) ->
     A + B.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
-1> doctest_parse_transform_test:mult(1, 1).
+1> doctest_transform_test:mult(1, 1).
 1
-2> doctest_parse_transform_test:mult(1,
+2> doctest_transform_test:mult(1,
 .. 2).
 2
 ```
 """.
+-endif.
 mult(A, B) ->
     A * B.
 
 nodoc() ->
     ok.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 """.
+-endif.
 nocodeblock() ->
     ok.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 foo() ->
     bar.
 ```
 """.
+-endif.
 notestcodeblock() ->
     ok.
 
+-if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 1> Foo = "foo".
 "foo"
-2> doctest_parse_transform_test:concat(
+2> doctest_transform_test:concat(
 .. Foo,
 ..   "bar"
 .. ).
 "foobar"
 ```
 """.
+-endif.
 concat(A, B) ->
     A ++ B.
