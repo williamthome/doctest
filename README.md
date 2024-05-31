@@ -261,6 +261,18 @@ Tests: 2 failed, 2 passed, 4 total
 >
 > The output above is by using the `doctest_eunit_report` as the EUnit report.
 
+## Doctest EUnit Reporter
+
+There is a built-in EUnit reporter called `doctest_eunit_report` to display the tests results correctly. Set it in the EUnit options of the project options, e.g.:
+
+```erlang
+% rebar3.config
+{eunit_opts, [no_tty, {report, {doctest_eunit_report, []}}]}.
+```
+
+An example of the `doctest_eunit_report` output:
+![doctest_eunit_report](/assets/reporter-go-to-definition.gif)
+
 ## TODO
 
 - [ ] More tests
