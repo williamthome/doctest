@@ -28,7 +28,7 @@
     enabled => boolean(),
     moduledoc => boolean(),
     funs => boolean() | [{atom(), arity()}],
-    eunit => resolve | [term()],
+    eunit_opts => rebar3_config | [term()],
     extractors => [module()]
 }.
 -type result() :: ok | error.
@@ -67,7 +67,7 @@ forms(Forms, Opts) ->
 run(Fun, Payload, Opts) ->
     do_run(parse_opts(Opts), Fun, Payload).
 
-do_run(#{enabled := true, eunit := EunitOpts} = Opts, Fun, Payload) ->
+do_run(#{enabled := true, eunit_opts := EunitOpts} = Opts, Fun, Payload) ->
     doctest_eunit:test(doctest_extract:Fun(Payload, Opts), EunitOpts);
 do_run(#{enabled := false}, _, _) ->
     ok.
@@ -81,8 +81,8 @@ parse_opts(Opts) when is_map(Opts) ->
             proplists:get_value(moduledoc, Env, true)),
         funs => maps:get(funs, Opts,
             proplists:get_value(funs, Env, true)),
-        eunit => maps:get(eunit, Opts,
-            proplists:get_value(eunit, Env, resolve)),
+        eunit_opts => maps:get(eunit_opts, Opts,
+            proplists:get_value(eunit_opts, Env, rebar3_config)),
         extractors => maps:get(extractors, Opts,
             proplists:get_value(extractors, Env, []))
     }.

@@ -26,10 +26,10 @@
 %%%=====================================================================
 
 test(Tests) ->
-    test(Tests, resolve).
+    test(Tests, rebar3_config).
 
-test(Tests, resolve) ->
-    eunit:test(Tests, options());
+test(Tests, rebar3_config) ->
+    eunit:test(Tests, rebar3_config_opts());
 test(Tests, Options) when is_list(Options) ->
     eunit:test(Tests, Options).
 
@@ -154,7 +154,7 @@ test_title(Mod, Ln) ->
 %%% Internal functions
 %%%=====================================================================
 
-options() ->
+rebar3_config_opts() ->
     case erlang:module_loaded(rebar3) of
         true ->
             resolve_eunit_opts(rebar3:init_config());
