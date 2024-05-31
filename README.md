@@ -266,6 +266,18 @@ Tests: 2 failed, 2 passed, 4 total
 - [ ] Specs
 - [ ] Improve docs
 
+### FIXME
+
+- [ ] Line break unlinks doc and function in EDoc, e.g.:
+    ```erlang
+    %% @doc this is fine.
+    foo() -> foo.
+
+    %% @doc this does not link the doc and the function because of the line break.
+
+    foo() -> foo.
+    ```
+
 ## Sponsors
 
 If you like this tool, please consider [sponsoring me](https://github.com/sponsors/williamthome).
