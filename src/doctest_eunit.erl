@@ -163,7 +163,7 @@ rebar3_config_opts() ->
     end.
 
 tests(Mod, AttrLn, CodeBlocks, Callback) when
-    is_atom(Mod), is_integer(AttrLn), AttrLn > 0,
+    is_atom(Mod), is_integer(AttrLn), AttrLn >= 0,
     is_list(CodeBlocks), is_function(Callback, 2) ->
     {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
         case code_block_asserts(CodeBlock, AttrLn + CBLn) of
