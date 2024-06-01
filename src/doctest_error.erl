@@ -18,7 +18,7 @@
 % API functions
 -export([raise/3]).
 
--include("src/doctest_check.hrl").
+-include("doctest_check.hrl").
 
 %%%=====================================================================
 %%% API functions
