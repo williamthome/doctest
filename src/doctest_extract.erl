@@ -136,13 +136,13 @@ should_test_moduledoc(#{moduledoc := false}) ->
 should_test_moduledoc(Opts) when not is_map_key(moduledoc, Opts) ->
     true.
 
-should_test_doc(#{funs := true}, _Fun) ->
+should_test_doc(#{doc := true}, _Fun) ->
     true;
-should_test_doc(#{funs := false}, _Fun) ->
+should_test_doc(#{doc := false}, _Fun) ->
     false;
-should_test_doc(#{funs := Funs}, Fun) when is_list(Funs) ->
+should_test_doc(#{doc := Funs}, Fun) when is_list(Funs) ->
     lists:member(Fun, Funs);
-should_test_doc(Opts, _Fun) when not is_map_key(funs, Opts) ->
+should_test_doc(Opts, _Fun) when not is_map_key(doc, Opts) ->
     true.
 
 loc(Doc, Pos) ->

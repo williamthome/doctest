@@ -95,13 +95,13 @@ The options are passed via a map:
     % Default: true.
     enabled => boolean(), false.
 
-    % Enable or turn off `-moduledoc` tests.
+    % Enable or turn off module doc tests.
     % Default: true.
     moduledoc => boolean(),
 
-    % Enable or turn off function tests or define a list of functions to be tested.
+    % Enable or turn off functions doc tests or define a list of functions to be tested.
     % Default: true.
-    funs => boolean() | [{atom(), arity()}],
+    doc => boolean() | [{atom(), arity()}],
 
     % Set the EUnit options. 'rebar3_config' tries to resolve the options defined in the rebar3.
     % Default: rebar3_config.
@@ -128,7 +128,7 @@ In a module, the `-doctest` attribute is used to override the default settings v
   ```erlang
   -doctest {moduledoc, true}.
   ```
-- `{funs, boolean() | [{atom(), arity()}]}` or `[{atom(), arity()}]`: equivalent to funs option.
+- `{doc, boolean() | [{atom(), arity()}]}` or `[{atom(), arity()}]`: equivalent to doc option.
   ```erlang
   -doctest [print/0].
   ```
@@ -153,7 +153,7 @@ Options can be globally defined via a [config file](https://www.erlang.org/doc/m
 [{doctest, [
     {enabled, true},
     {moduledoc, true},
-    {funs, true},
+    {doc, true},
     {eunit_opts, rebar3_config},
     {extractors, [doctest_extract_attr, doctest_extract_tag]}
 ]}].

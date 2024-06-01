@@ -27,7 +27,7 @@
 -type options() :: #{
     enabled => boolean(),
     moduledoc => boolean(),
-    funs => boolean() | [{atom(), arity()}],
+    doc => boolean() | [{atom(), arity()}],
     eunit_opts => rebar3_config | [term()],
     extractors => [module()]
 }.
@@ -79,8 +79,8 @@ parse_opts(Opts) when is_map(Opts) ->
             proplists:get_value(enabled, Env, true)),
         moduledoc => maps:get(moduledoc, Opts,
             proplists:get_value(moduledoc, Env, true)),
-        funs => maps:get(funs, Opts,
-            proplists:get_value(funs, Env, true)),
+        doc => maps:get(doc, Opts,
+            proplists:get_value(doc, Env, true)),
         eunit_opts => maps:get(eunit_opts, Opts,
             proplists:get_value(eunit_opts, Env, rebar3_config)),
         extractors => maps:get(extractors, Opts,
