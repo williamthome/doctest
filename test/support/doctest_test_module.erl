@@ -60,6 +60,6 @@ foo() ->
 %% 2> Bar =:= bar.
 %% true
 %% '''
-%% @todo Check why no line break is allowed between doc and function.
+
 bar() ->
     bar.
