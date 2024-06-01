@@ -10,7 +10,7 @@ An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
 
 ```erlang
 % rebar.config
-% {minimum_otp_vsn, "23"}.
+% {minimum_otp_vsn, "24"}.
 {profiles, [
     {test, [
         % 'debug_info' is required to extract doc chunks.
