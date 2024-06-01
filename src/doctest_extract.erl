@@ -47,7 +47,7 @@
 -type code_blocks() :: [{binary(), location()}] | none.
 -type location() :: {Ln :: pos_integer(), Col :: pos_integer()}.
 
--include("src/doctest_check.hrl").
+-include("doctest_check.hrl").
 
 %%%=====================================================================
 %%% API functions
