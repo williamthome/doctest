@@ -41,7 +41,7 @@ chunks({Mod, Forms}) ->
         EntryComments = search_entry_comments(Ln, Comments),
         Doc = comments_to_binary(EntryComments),
         case Data of
-            module ->
+            moduledoc ->
                 {token(Mod), Ln-1, Doc};
             {doc, {F, A}} ->
                 {token({Mod, F, A}), Ln-1, Doc}
