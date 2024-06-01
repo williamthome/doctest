@@ -277,15 +277,12 @@ format_error({error, {Reason, Info}, Stack}, Test) ->
 print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test, _Stack) ->
     Left = proplists:get_value(expected, Info),
     Right = proplists:get_value(value, Info),
-
     Filename = maps:get(file, Test),
     Lns = readlines(Filename),
     Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(ToLn)), <<"\s">>)),
-
     Range = lists:map(fun({RLn, RExpr}) ->
         [<<"\s">>, {{to_bin, RLn}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, RExpr, <<"\n">>]
     end, range(FromLn, ToLn, Lns)),
-
     [
         <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
@@ -311,7 +308,6 @@ print_test({ErrReason, Info}, Test, _Stacktrace) ->
             Right = proplists:get_value(value, Info,
                         proplists:get_value(unexpected_success, Info,
                             proplists:get_value(unexpected_exception, Info))),
-
             LeftFmt = case proplists:is_defined(pattern, Info) of
                 true ->
                     "~ts";
@@ -319,14 +315,11 @@ print_test({ErrReason, Info}, Test, _Stacktrace) ->
                     "~tp"
             end,
             RightFmt = "~tP",
-
             Filename = maps:get(file, Test),
             {line, Ln} = proplists:lookup(line, Info),
             Lns = readlines(Filename),
             LnExpr = lists:nth(Ln, Lns),
-
             Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), <<"\s">>)),
-
             [
                 <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
                 <<"\n">>,
