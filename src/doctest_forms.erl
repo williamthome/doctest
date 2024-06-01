@@ -111,7 +111,9 @@ do_prepend([Form | Forms], NewForms) ->
             NewForms ++ [Form | Forms];
         _ ->
             [Form | do_prepend(Forms, NewForms)]
-    end.
+    end;
+do_prepend([], _NewForms) ->
+    [].
 
 do_append([Form | Forms], NewForms) ->
     case erl_syntax:type(Form) of
@@ -119,4 +121,6 @@ do_append([Form | Forms], NewForms) ->
             NewForms ++ [Form | Forms];
         _ ->
             [Form | do_append(Forms, NewForms)]
-    end.
+    end;
+do_append([], _NewForms) ->
+    [].

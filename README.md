@@ -10,7 +10,7 @@ An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
 
 ```erlang
 % rebar.config
-% {minimum_otp_vsn, "23"}.
+% {minimum_otp_vsn, "24"}.
 {profiles, [
     {test, [
         % 'debug_info' is required to extract doc chunks.
@@ -278,18 +278,6 @@ An example of the `doctest_eunit_report` output:
 - [ ] More tests
 - [ ] Specs
 - [ ] Improve docs
-
-### FIXME
-
-- [ ] Line break unlinks doc and function in EDoc, e.g.:
-    ```erlang
-    %% @doc this is fine.
-    foo() -> foo.
-
-    %% @doc this does not link the doc and the function because of the line break.
-
-    foo() -> foo.
-    ```
 
 ## Sponsors
 

@@ -1,4 +1,10 @@
-%%%---------------------------------------------------------------------
+%%% @doc Module doc can also be tested.
+%%% ```
+%%% 1> doctest_transform_test:sum(1, 1) =:= 2.
+%%% true
+%%% '''
+%%% @end
+%%% ---------------------------------------------------------------------
 %%% Copyright 2024 William Fank Thomé
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +20,17 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_transform_test).
--include("src/doctest_check.hrl").
-
--if(?IS_DOC_ATTRS_SUPPORTED).
--moduledoc """
-Module doc tags can also be tested.
-
-```erlang
-1> doctest_transform_test:sum(1, 1) =:= 2.
-true
-```
-""".
--endif.
-
--export([sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2]).
+-export([sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0]).
 
 -ifdef(TEST).
 -include("doctest.hrl").
--doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0, concat/2].
+-doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0].
 -endif.
 
+-include("src/doctest_check.hrl").
+
 -if(?IS_DOC_ATTRS_SUPPORTED).
+
 -doc """
 ```erlang
 1> doctest_transform_test:sum(1, 1).
@@ -44,57 +40,91 @@ true
 3
 ```
 """.
--endif.
 sum(A, B) ->
     A + B.
 
--if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
-1> doctest_transform_test:mult(1, 1).
+1> One = 1.
 1
-2> doctest_transform_test:mult(1,
+2> doctest_transform_test:mult(One, One).
+1
+3> doctest_transform_test:mult(One,
 .. 2).
 2
 ```
 """.
--endif.
 mult(A, B) ->
     A * B.
 
 nodoc() ->
     ok.
 
--if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 """.
--endif.
 nocodeblock() ->
     ok.
 
--if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
 ```erlang
 foo() ->
     bar.
 ```
 """.
--endif.
 notestcodeblock() ->
     ok.
 
--if(?IS_DOC_ATTRS_SUPPORTED).
--doc """
-```erlang
-1> Foo = "foo".
-"foo"
-2> doctest_transform_test:concat(
-.. Foo,
-..   "bar"
-.. ).
-"foobar"
-```
-""".
--endif.
+-else.
+
+%% @doc
+%% ```
+%% 1> doctest_transform_test:sum(1, 1).
+%% 2
+%% 2> doctest_transform_test:sum(1,
+%% .. 2).
+%% 3
+%% '''
+sum(A, B) ->
+    A + B.
+
+%% @doc
+%% ```
+%% 1> doctest_transform_test:mult(1, 1).
+%% 1
+%% 2> doctest_transform_test:mult(1,
+%% .. 2).
+%% 2
+%% '''
+mult(A, B) ->
+    A * B.
+
+nodoc() ->
+    ok.
+
+%% @doc
+%% '''
+nocodeblock() ->
+    ok.
+
+%% @doc
+%% ```
+%% foo() ->
+%%     bar.
+%% '''
+notestcodeblock() ->
+    ok.
+
+%% @doc
+%% ```
+%% 1> Foo = "foo".
+%% "foo"
+%% 2> doctest_transform_test:concat(
+%% .. Foo,
+%% ..   "bar"
+%% .. ).
+%% "foobar"
+%% '''
 concat(A, B) ->
     A ++ B.
+
+-endif.

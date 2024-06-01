@@ -25,6 +25,9 @@
     "(?:\\n^(''')(\\s+|\\n|$))" % ''')
 ).
 
+% Contains the entry record.
+-include_lib("edoc/src/edoc.hrl").
+
 %%%=====================================================================
 %%% doctest_extract callbacks
 %%%=====================================================================
@@ -32,8 +35,18 @@
 chunks({Mod, Forms}) ->
     Filename = doctest_forms:filename(Forms),
     Comments = erl_comment_scan:file(Filename),
-    Tree = erl_recomment:recomment_forms(Forms, Comments),
-    do_chunks(Mod, Tree).
+    {Mod, _EDoc, Entries} =
+        edoc_extract:source(Filename, edoc_lib:get_doc_env([]), [return_entries]),
+    lists:map(fun({Ln, Data}) ->
+        EntryComments = search_entry_comments(Ln, Comments),
+        Doc = comments_to_binary(EntryComments),
+        case Data of
+            moduledoc ->
+                {token(Mod), Ln-1, Doc};
+            {doc, {F, A}} ->
+                {token({Mod, F, A}), Ln-1, Doc}
+        end
+    end, filtermap_entries(Entries)).
 
 code_blocks(Doc) ->
     doctest_extract:code_blocks(Doc, ?CODE_BLOCK_RE).
@@ -42,46 +55,35 @@ code_blocks(Doc) ->
 %%% Internal functions
 %%%=====================================================================
 
-do_chunks(Mod, Tree) ->
-    Forms = erl_syntax:form_list_elements(erl_syntax:flatten_form_list(Tree)),
-    do_chunks_1(Forms, Mod).
-
-do_chunks_1([Form | Forms], Mod) ->
-    case erl_syntax:get_precomments(Form) of
-        [] ->
-            do_chunks_1(Forms, Mod);
-        Comments ->
-            do_chunks_2(Form, Forms, Mod, Comments)
-    end;
-do_chunks_1([], _Mod) ->
+filtermap_entries([#entry{data = []} | Entries]) ->
+    filtermap_entries(Entries);
+filtermap_entries([#entry{name = module, data = Data} | Entries]) ->
+    [{entry_ln(Data), moduledoc} | filtermap_entries(Entries)];
+filtermap_entries([#entry{name = {F, A}, data = Data} | Entries]) ->
+    [{entry_ln(Data), {doc, {F, A}}} | filtermap_entries(Entries)];
+filtermap_entries([_ | Entries]) ->
+    filtermap_entries(Entries);
+filtermap_entries([]) ->
     [].
 
-do_chunks_2(Form, Forms, Mod, Comments) ->
-    case erl_syntax_lib:analyze_form(Form) of
-        {function, {Fun, Arity}} ->
-            [chunk({Mod, Fun, Arity}, Comments) | do_chunks_1(Forms, Mod)];
-        {attribute, {module, Mod}} ->
-            [chunk(Mod, Comments) | do_chunks_1(Forms, Mod)];
-        _ ->
-            do_chunks_1(Forms, Mod)
-    end.
-
-chunk(Data, Comments) ->
-    {token(Data), ln(Comments), doc(Comments)}.
+entry_ln([#tag{name = doc, origin = comment, line = Ln} | _]) ->
+    Ln;
+entry_ln([_ | Elems]) ->
+    entry_ln(Elems).
 
 token({Mod, Fun, Arity}) ->
     {doc, {Mod, Fun, Arity}, <<"@doc">>};
 token(Mod) ->
     {moduledoc, Mod, <<"@moduledoc">>}.
 
-doc(Comments) ->
-    iolist_to_binary(lists:join($\n, lists:map(fun(C) ->
-        lists:join($\n, [rm_percentage(T) || T <- erl_syntax:comment_text(C)])
-    end, Comments))).
+search_entry_comments(Ln, Comments) ->
+    {value, {_, _, _, EntryComments}} =
+        lists:search(fun({CLn, _, _, _}) -> CLn =:= Ln end, Comments),
+    EntryComments.
+
+comments_to_binary(Comments) ->
+    iolist_to_binary(lists:join($\n, [rm_percentage(C) || C <- Comments])).
 
 rm_percentage([$% | Cs]) -> rm_percentage(Cs);
 rm_percentage([$\s | Cs]) -> Cs;
 rm_percentage(Cs) -> Cs.
-
-ln([H|_]) ->
-    erl_anno:line(erl_syntax:get_pos((H))) - 1.
