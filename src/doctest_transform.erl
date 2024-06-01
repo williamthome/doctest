@@ -62,15 +62,15 @@ doctest_attrs(Forms) ->
 parse_opts([Enabled | T], Opts) when is_boolean(Enabled) ->
     parse_opts(T, Opts#{enabled => Enabled});
 parse_opts([Funs | T], Opts) when is_list(Funs) ->
-    parse_opts(T, Opts#{funs => Funs});
+    parse_opts(T, Opts#{doc => Funs});
 parse_opts([{enabled, Enabled} | T], Opts) when is_boolean(Enabled) ->
     parse_opts(T, Opts#{enabled => Enabled});
 parse_opts([{moduledoc, Enabled} | T], Opts) when is_boolean(Enabled) ->
     parse_opts(T, Opts#{moduledoc => Enabled});
-parse_opts([{funs, Enabled} | T], Opts) when is_boolean(Enabled) ->
-    parse_opts(T, Opts#{funs => Enabled});
-parse_opts([{funs, Funs} | T], Opts) when is_list(Funs) ->
-    parse_opts(T, Opts#{funs => Funs});
+parse_opts([{doc, Enabled} | T], Opts) when is_boolean(Enabled) ->
+    parse_opts(T, Opts#{doc => Enabled});
+parse_opts([{doc, Funs} | T], Opts) when is_list(Funs) ->
+    parse_opts(T, Opts#{doc => Funs});
 parse_opts([{eunit_opts, EunitOpts} | T], Opts) ->
     parse_opts(T, Opts#{eunit_opts => EunitOpts});
 parse_opts([{extractors, Extractors} | T], Opts) when is_list(Extractors) ->
