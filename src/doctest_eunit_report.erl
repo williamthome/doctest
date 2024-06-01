@@ -256,7 +256,6 @@ print_output(#{output := Out}) ->
             Pd = <<"\s\s\s">>,
             Lns = binary:split(Comment, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]),
             doctest_term:write([
-                % <<"\n\n">>,
                 Pd, {<<"Output:\n">>, bold},
                 lists:join(<<"\n">>, lists:map(fun(Ln) ->
                     [Pd, {Ln, {fg, bright_black}}]
