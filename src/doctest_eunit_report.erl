@@ -273,7 +273,9 @@ format_error({error, {assertEqual, Info}, Stack}, Test) ->
             print_test({assertEqual, Info}, Test, Stack)
     end;
 format_error({error, {Reason, Info}, Stack}, Test) ->
-    print_test({Reason, Info}, Test, Stack).
+    print_test({Reason, Info}, Test, Stack);
+format_error({exit, Reason, Stack}, Test) ->
+    print_test({exit, Reason}, Test, Stack).
 
 print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test, _Stack) ->
     Left = proplists:get_value(expected, Info),
