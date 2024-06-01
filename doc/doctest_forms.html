@@ -8,7 +8,7 @@
     <meta name="project" content="doctest v0.9.0">
 
 
-    <title>doctest — doctest v0.9.0</title>
+    <title>doctest_forms — doctest v0.9.0</title>
     <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
@@ -117,20 +117,16 @@ Pages
 
 <h1>
 
-    <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest.erl#L20" title="View Source" class="icon-action" rel="help">
+    <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L16" title="View Source" class="icon-action" rel="help">
       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
       <span class="sr-only">View Source</span>
     </a>
 
-  <span translate="no">doctest</span> 
+  <span translate="no">doctest_forms</span> 
   <small class="app-vsn" translate="no">(doctest v0.9.0)</small>
 
 </h1>
 
-
-  <section id="moduledoc">
-Provides functions to test docs.
-  </section>
 
 
   <section id="summary" class="details-list">
@@ -140,28 +136,6 @@ Provides functions to test docs.
       </a>
       <span class="text">Summary</span>
     </h1>
-<div class="summary-types summary">
-  <h2>
-    <a href="#types">Types</a>
-  </h2>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:options/0" translate="no">options/0</a>
-
-      </div>
-
-    </div>
-
-    <div class="summary-row">
-      <div class="summary-signature">
-        <a href="#t:result/0" translate="no">result/0</a>
-
-      </div>
-
-    </div>
-
-</div>
 <div class="summary-functions summary">
   <h2>
     <a href="#functions">Functions</a>
@@ -169,7 +143,7 @@ Provides functions to test docs.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#forms/2" translate="no">forms(Forms, Opts)</a>
+        <a href="#append/2" translate="no">append(NewForms, Forms)</a>
 
       </div>
 
@@ -177,7 +151,7 @@ Provides functions to test docs.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#module/1" translate="no">module(Mod)</a>
+        <a href="#filename/1" translate="no">filename(Forms)</a>
 
       </div>
 
@@ -185,7 +159,31 @@ Provides functions to test docs.
 
     <div class="summary-row">
       <div class="summary-signature">
-        <a href="#module/2" translate="no">module(Mod, Opts)</a>
+        <a href="#get_attributes/2" translate="no">get_attributes(Name, Forms)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#lookup_attribute/2" translate="no">lookup_attribute(Name, Forms)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#module/1" translate="no">module(Forms)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#prepend/2" translate="no">prepend(NewForms, Forms)</a>
 
       </div>
 
@@ -195,79 +193,6 @@ Provides functions to test docs.
 
   </section>
 
-
-  <section id="types" class="details-list">
-    <h1 class="section-heading">
-      <a class="hover-link" href="#types">
-        <i class="ri-link-m" aria-hidden="true"></i>
-      </a>
-      <span class="text">Types</span>
-    </h1>
-    <div class="types-list">
-<section class="detail" id="t:options/0">
-
-  <div class="detail-header">
-    <a href="#t:options/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">options/0</h1>
-
-      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest.erl#L27" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">-type</span> options() ::
-    #{enabled => <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>(),
-      moduledoc => <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>(),
-      doc => <a href="https://www.erlang.org/doc/man/erlang.html#type-boolean">boolean</a>() | [{<a href="https://www.erlang.org/doc/man/erlang.html#type-atom">atom</a>(), <a href="https://www.erlang.org/doc/man/erlang.html#type-arity">arity</a>()}],
-      eunit_opts => rebar3_config | [<a href="https://www.erlang.org/doc/man/erlang.html#type-term">term</a>()],
-      extractors => [<a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>()]}.</pre>
-
-      </div>
-
-
-  </section>
-</section>
-<section class="detail" id="t:result/0">
-
-  <div class="detail-header">
-    <a href="#t:result/0" class="detail-link" title="Link to this type">
-      <i class="ri-link-m" aria-hidden="true"></i>
-      <span class="sr-only">Link to this type</span>
-    </a>
-    <h1 class="signature" translate="no">result/0</h1>
-
-      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest.erl#L34" class="icon-action" rel="help" title="View Source">
-       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
-       <span class="sr-only">View Source</span>
-     </a>
-
-
-  </div>
-
-  <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">-type</span> result() :: ok | error.</pre>
-
-      </div>
-
-
-  </section>
-</section>
-
-    </div>
-  </section>
 
   <section id="functions" class="details-list">
     <h1 class="section-heading">
@@ -277,16 +202,16 @@ Provides functions to test docs.
       <span class="text">Functions</span>
     </h1>
     <div class="functions-list">
-<section class="detail" id="forms/2">
+<section class="detail" id="append/2">
 
   <div class="detail-header">
-    <a href="#forms/2" class="detail-link" title="Link to this function">
+    <a href="#append/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">forms(Forms, Opts)</h1>
+    <h1 class="signature" translate="no">append(NewForms, Forms)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest.erl#L60" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L61" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -296,12 +221,71 @@ Provides functions to test docs.
 
   <section class="docstring">
 
-      <div class="specs">
 
-          <pre translate="no"><span class="attribute">-spec</span> forms(Forms, Opts) -> Result
-         when Forms :: [<a href="https://www.erlang.org/doc/man/erl_syntax.html#type-syntaxTree">erl_syntax:syntaxTree</a>()], Opts :: <a href="#t:options/0">options</a>(), Result :: <a href="#t:result/0">result</a>().</pre>
+  </section>
+</section>
+<section class="detail" id="filename/1">
 
-      </div>
+  <div class="detail-header">
+    <a href="#filename/1" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">filename(Forms)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L35" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="get_attributes/2">
+
+  <div class="detail-header">
+    <a href="#get_attributes/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">get_attributes(Name, Forms)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L42" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+<section class="detail" id="lookup_attribute/2">
+
+  <div class="detail-header">
+    <a href="#lookup_attribute/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">lookup_attribute(Name, Forms)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L39" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
 
 
   </section>
@@ -313,9 +297,9 @@ Provides functions to test docs.
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">module(Mod)</h1>
+    <h1 class="signature" translate="no">module(Forms)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest.erl#L44" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L31" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -324,26 +308,20 @@ Provides functions to test docs.
   </div>
 
   <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">-spec</span> module(Mod) -> Result when Mod :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(), Result :: <a href="#t:result/0">result</a>().</pre>
-
-      </div>
 
 
   </section>
 </section>
-<section class="detail" id="module/2">
+<section class="detail" id="prepend/2">
 
   <div class="detail-header">
-    <a href="#module/2" class="detail-link" title="Link to this function">
+    <a href="#prepend/2" class="detail-link" title="Link to this function">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this function</span>
     </a>
-    <h1 class="signature" translate="no">module(Mod, Opts)</h1>
+    <h1 class="signature" translate="no">prepend(NewForms, Forms)</h1>
 
-      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest.erl#L52" class="icon-action" rel="help" title="View Source">
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_forms.erl#L56" class="icon-action" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -352,12 +330,6 @@ Provides functions to test docs.
   </div>
 
   <section class="docstring">
-
-      <div class="specs">
-
-          <pre translate="no"><span class="attribute">-spec</span> module(Mod, Opts) -> Result when Mod :: <a href="https://www.erlang.org/doc/man/erlang.html#type-module">module</a>(), Opts :: <a href="#t:options/0">options</a>(), Result :: <a href="#t:result/0">result</a>().</pre>
-
-      </div>
 
 
   </section>

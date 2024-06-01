@@ -8,9 +8,7 @@
     <meta name="project" content="doctest v0.9.0">
 
 
-      <meta name="robots" content="noindex">
-
-    <title>404 — doctest v0.9.0</title>
+    <title>doctest_transform — doctest v0.9.0</title>
     <link rel="stylesheet" href="dist/html-erlang-DUKXLSAT.css" />
 
 
@@ -24,7 +22,7 @@
 
 
   </head>
-  <body data-type="extras" class="page-extra">
+  <body data-type="modules" class="page-module">
     <script>
 
       try {
@@ -118,15 +116,85 @@ Pages
       </div>
 
 <h1>
-  <span>Page not found</span>
+
+    <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_transform.erl#L30" title="View Source" class="icon-action" rel="help">
+      <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+      <span class="sr-only">View Source</span>
+    </a>
+
+  <span translate="no">doctest_transform</span> 
+  <small class="app-vsn" translate="no">(doctest v0.9.0)</small>
+
 </h1>
 
-<p>Sorry, but the page you were trying to get to, does not exist. You
-may want to try searching this site using the sidebar
 
-  or using our <a href="api-reference.html">API Reference</a> page
+  <section id="moduledoc">
+<p>Generate tests for doc attributes via parse transform.</p>Just plug the header on your module:<pre><code class="makeup erlang" translate="no"><span class="w">   </span><span class="p">-</span><span class="na">ifdef</span><span class="p" data-group-id="0852735111-1">(</span><span class="n">TEST</span><span class="p" data-group-id="0852735111-1">)</span><span class="p">.</span><span class="w">
+</span><span class="w">   </span><span class="p">-</span><span class="na">include_lib</span><span class="p" data-group-id="0852735111-2">(</span><span class="s">&quot;doctest/include/doctest.hrl&quot;</span><span class="p" data-group-id="0852735111-2">)</span><span class="p">.</span><span class="w">
+</span><span class="w">   </span><span class="p">-</span><span class="na">doctest</span><span class="w"> </span><span class="o">&lt;</span><span class="ss">options</span><span class="o">&gt;</span><span class="w"> </span><span class="c1">% optional</span><span class="w">
+</span><span class="w">   </span><span class="p">-</span><span class="na">endif</span><span class="p">.</span></code></pre>
+  </section>
 
-to find what you were looking for.</p>
+
+  <section id="summary" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h1>
+<div class="summary-functions summary">
+  <h2>
+    <a href="#functions">Functions</a>
+  </h2>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#parse_transform/2" translate="no">parse_transform(Forms, Opts)</a>
+
+      </div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h1 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h1>
+    <div class="functions-list">
+<section class="detail" id="parse_transform/2">
+
+  <div class="detail-header">
+    <a href="#parse_transform/2" class="detail-link" title="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature" translate="no">parse_transform(Forms, Opts)</h1>
+
+      <a href="https://github.com/williamthome/doctest/blob/v0.9.0/src/doctest_transform.erl#L39" class="icon-action" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+
+  </section>
+</section>
+
+    </div>
+  </section>
+
       <footer class="footer">
         <p>
 
