@@ -45,7 +45,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
                     true ->
                         ok;
                     false ->
-                        erlang:error({assertEqual, [
+                        error({assertEqual, [
                             {doctest, #{
                                 attribute => moduledoc,
                                 tag => Tag,
@@ -66,7 +66,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            doctest_error:raise({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, Info#{
                     attribute => moduledoc,
                     module => Mod,
@@ -74,7 +74,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            doctest_error:raise({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
@@ -94,7 +94,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     true ->
                         ok;
                     false ->
-                        erlang:error({assertEqual, [
+                        error({assertEqual, [
                             {doctest, #{
                                 attribute => doc,
                                 tag => Tag,
@@ -117,22 +117,18 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            doctest_error:raise(
-                {doctest, format},
-                [{M, F, A}, AttrLn, CodeBlocks],
-                Info#{
+            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, Info#{
                     attribute => doc,
                     module => M,
                     function => F,
                     arity => A,
                     cause => format
-                }
-            );
+                }}
+            ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            doctest_error:raise(
-                {doctest, eval},
-                [{M, F, A}, AttrLn, CodeBlocks],
-                #{
+            error({doctest, eval}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, #{
                     attribute => doc,
                     module => M,
                     function => F,
@@ -141,8 +137,8 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     bindings => Bindings,
                     cause => Reason,
                     line => Ln
-                }
-            )
+                }}
+            ])
     end.
 
 test_title(Mod, Ln) ->

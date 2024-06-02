@@ -42,15 +42,19 @@ chunks({Mod, Forms}) ->
                     doc_chunks(Mod, Docs)
             end;
         {error, missing} ->
-            doctest_error:raise(debug_info, [{Mod, Forms}], #{
-                module => Mod,
-                cause => "doctest requires 'debug_info' in compiler options"
-            });
+            error(debug_info, [{Mod, Forms}], [
+                {error_info, #{
+                    module => Mod,
+                    cause => "doctest requires 'debug_info' in compiler options"
+                }}
+            ]);
         {error, Reason} ->
-            doctest_error:raise(Reason, [{Mod, Forms}], #{
-                module => Mod,
-                cause => Reason
-            })
+            error(Reason, [{Mod, Forms}], [
+                {error_info, #{
+                    module => Mod,
+                    cause => Reason
+                }}
+            ])
     end.
 
 code_blocks(Markdown) ->
