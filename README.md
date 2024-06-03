@@ -26,7 +26,7 @@ An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
 
 Erlang documentation can be written:
 - Via [EDoc](https://www.erlang.org/doc/apps/edoc/chapter) by using the `@doc` tag, e.g.:
-  ```erlang
+  ````erlang
   %% @doc Prints "Hello, Joe!"
   %% Example:
   %% ```
@@ -34,7 +34,7 @@ Erlang documentation can be written:
   %% "Hello, Joe!"
   %% '''
   print() -> "Hello, Joe!".
-  ```
+  ````
 - Or via [ExDoc](https://hexdocs.pm/ex_doc/readme.html), by using the `-moduledoc` and `-doc` attributes [introduced in OTP 27](https://www.erlang.org/doc/system/documentation), e.g.:
   ````erlang
   -doc """
