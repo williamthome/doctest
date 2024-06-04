@@ -73,16 +73,15 @@ do_run(#{enabled := false}, _, _) ->
     ok.
 
 parse_opts(Opts) when is_map(Opts) ->
-    Env = application:get_all_env(doctest),
     #{
         enabled => maps:get(enabled, Opts,
-            proplists:get_value(enabled, Env, true)),
+            application:get_env(doctest, enabled, true)),
         moduledoc => maps:get(moduledoc, Opts,
-            proplists:get_value(moduledoc, Env, true)),
+            application:get_env(doctest, moduledoc, true)),
         doc => maps:get(doc, Opts,
-            proplists:get_value(doc, Env, true)),
+            application:get_env(doctest, doc, true)),
         eunit_opts => maps:get(eunit_opts, Opts,
-            proplists:get_value(eunit_opts, Env, rebar3_config)),
+            application:get_env(doctest, eunit_opts, rebar3_config)),
         extractors => maps:get(extractors, Opts,
-            proplists:get_value(extractors, Env, []))
+            application:get_env(doctest, extractors, []))
     }.
