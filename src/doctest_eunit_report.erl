@@ -97,8 +97,7 @@ terminate({ok, Data}, #state{groups = Groups} = _State) ->
     print_footer(Data, Time),
     {ok, Data};
 terminate({error, Reason}, State) ->
-    % TODO: Print error
-    io:format(user, "[error] ~tp~n", [{Reason, State}]),
+    print_error(error, Reason, State),
     {error, Reason}.
 
 test_info(#{desc := <<"doctest ", Rest/binary>>} = D) ->
