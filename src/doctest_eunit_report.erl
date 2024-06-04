@@ -59,8 +59,12 @@ handle_begin(test, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
     GroupId = lists:droplast(Id),
     State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        Test = test_info(maps:from_list(Data)),
-        [Group, orddict:append(Id, Test, Tests)]
+        case test_info(maps:from_list(Data)) of
+            #{source := {_Mod, doctest_test, 0}} ->
+                [Group, Tests];
+            Test ->
+                [Group, orddict:append(Id, Test, Tests)]
+        end
     end, Groups)}.
 
 handle_end(group, Data, #state{groups = Groups} = State) ->
@@ -72,9 +76,14 @@ handle_end(test, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
     GroupId = lists:droplast(Id),
     State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        [Group, orddict:update(Id, fun([Test]) ->
-            [maps:merge(Test, maps:from_list(Data))]
-        end, Tests)]
+        case orddict:is_key(Id, Tests) of
+            true ->
+                [Group, orddict:update(Id, fun([Test]) ->
+                    [maps:merge(Test, maps:from_list(Data))]
+                end, Tests)];
+            false ->
+                [Group, Tests]
+        end
     end, Groups)}.
 
 handle_cancel(group, Data, #state{groups = Groups} = State) ->
@@ -86,9 +95,14 @@ handle_cancel(test, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
     GroupId = lists:droplast(Id),
     State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        [Group, orddict:update(Id, fun([Test]) ->
-            [maps:merge(Test, maps:from_list(Data))]
-        end, Tests)]
+        case orddict:is_key(Id, Tests) of
+            true ->
+                [Group, orddict:update(Id, fun([Test]) ->
+                    [maps:merge(Test, maps:from_list(Data))]
+                end, Tests)];
+            false ->
+                [Group, Tests]
+        end
     end, Groups)}.
 
 terminate({ok, Data}, #state{groups = Groups} = _State) ->
