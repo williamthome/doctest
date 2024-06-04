@@ -15,7 +15,7 @@ An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
     {test, [
         % 'debug_info' is required to extract doc chunks.
         {erl_opts, [debug_info]},
-        {deps, [{doctest, "0.9.0"}]}
+        {deps, [{doctest, "0.9.1"}]}
     ]}
 ]}.
 % 'doctest_eunit_report' is required to pretty print and correctly displays the failed tests.
