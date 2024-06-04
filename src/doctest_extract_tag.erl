@@ -37,14 +37,18 @@ chunks({Mod, Forms}) ->
     Comments = erl_comment_scan:file(Filename),
     {Mod, _EDoc, Entries} =
         edoc_extract:source(Filename, edoc_lib:get_doc_env([]), [return_entries]),
-    lists:map(fun({Ln, Data}) ->
-        EntryComments = search_entry_comments(Ln, Comments),
-        Doc = comments_to_binary(EntryComments),
-        case Data of
-            moduledoc ->
-                {token(Mod), Ln-1, Doc};
-            {doc, {F, A}} ->
-                {token({Mod, F, A}), Ln-1, Doc}
+    lists:filtermap(fun({Ln, Data}) ->
+        case search_entry_comments(Ln, Comments) of
+            {value, EntryComments} ->
+                Doc = comments_to_binary(EntryComments),
+                case Data of
+                    moduledoc ->
+                        {true, {token(Mod), Ln-1, Doc}};
+                    {doc, {F, A}} ->
+                        {true, {token({Mod, F, A}), Ln-1, Doc}}
+                end;
+            false ->
+                false
         end
     end, filtermap_entries(Entries)).
 
@@ -77,9 +81,12 @@ token(Mod) ->
     {moduledoc, Mod, <<"@moduledoc">>}.
 
 search_entry_comments(Ln, Comments) ->
-    {value, {_, _, _, EntryComments}} =
-        lists:search(fun({CLn, _, _, _}) -> CLn =:= Ln end, Comments),
-    EntryComments.
+    case lists:search(fun({CLn, _, _, _}) -> CLn =:= Ln end, Comments) of
+        {value, {_, _, _, EntryComments}} ->
+            {value, EntryComments};
+        false ->
+            false
+    end.
 
 comments_to_binary(Comments) ->
     iolist_to_binary(lists:join($\n, [rm_percentage(C) || C <- Comments])).

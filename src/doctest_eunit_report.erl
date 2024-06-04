@@ -59,8 +59,12 @@ handle_begin(test, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
     GroupId = lists:droplast(Id),
     State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        Test = test_info(maps:from_list(Data)),
-        [Group, orddict:append(Id, Test, Tests)]
+        case test_info(maps:from_list(Data)) of
+            #{source := {_Mod, doctest_test, 0}} ->
+                [Group, Tests];
+            Test ->
+                [Group, orddict:append(Id, Test, Tests)]
+        end
     end, Groups)}.
 
 handle_end(group, Data, #state{groups = Groups} = State) ->
@@ -72,9 +76,14 @@ handle_end(test, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
     GroupId = lists:droplast(Id),
     State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        [Group, orddict:update(Id, fun([Test]) ->
-            [maps:merge(Test, maps:from_list(Data))]
-        end, Tests)]
+        case orddict:is_key(Id, Tests) of
+            true ->
+                [Group, orddict:update(Id, fun([Test]) ->
+                    [maps:merge(Test, maps:from_list(Data))]
+                end, Tests)];
+            false ->
+                [Group, Tests]
+        end
     end, Groups)}.
 
 handle_cancel(group, Data, #state{groups = Groups} = State) ->
@@ -86,9 +95,14 @@ handle_cancel(test, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
     GroupId = lists:droplast(Id),
     State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        [Group, orddict:update(Id, fun([Test]) ->
-            [maps:merge(Test, maps:from_list(Data))]
-        end, Tests)]
+        case orddict:is_key(Id, Tests) of
+            true ->
+                [Group, orddict:update(Id, fun([Test]) ->
+                    [maps:merge(Test, maps:from_list(Data))]
+                end, Tests)];
+            false ->
+                [Group, Tests]
+        end
     end, Groups)}.
 
 terminate({ok, Data}, #state{groups = Groups} = _State) ->
@@ -97,8 +111,7 @@ terminate({ok, Data}, #state{groups = Groups} = _State) ->
     print_footer(Data, Time),
     {ok, Data};
 terminate({error, Reason}, State) ->
-    % TODO: Print error
-    io:format(user, "[error] ~tp~n", [{Reason, State}]),
+    print_error(error, Reason, State),
     {error, Reason}.
 
 test_info(#{desc := <<"doctest ", Rest/binary>>} = D) ->
@@ -273,7 +286,15 @@ format_error({error, {assertEqual, Info}, Stacktrace}, Test) ->
             print_test({assertEqual, Info}, Test, Stacktrace)
     end;
 format_error({error, {Reason, Info}, Stacktrace}, Test) ->
-    print_test({Reason, Info}, Test, Stacktrace);
+    case is_list(Info) andalso (
+        proplists:is_defined(expected, Info) orelse
+        proplists:is_defined(pattern, Info)
+    ) of
+        true ->
+            print_test({Reason, Info}, Test, Stacktrace);
+        false ->
+            print_error(error, {Reason, Info}, Stacktrace)
+    end;
 format_error({Class, Reason, Stacktrace}, _Test) ->
     print_error(Class, Reason, Stacktrace).
 
@@ -300,50 +321,37 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
         <<"\n">>
     ].
 
-print_test({ErrReason, Info}, Test, _Stacktrace) ->
-    case is_list(Info) andalso (
-        proplists:is_defined(expected, Info) orelse
-        proplists:is_defined(pattern, Info)
-    ) of
+print_test({Reason, Info}, Test, _Stacktrace) ->
+    Left = proplists:get_value(expected, Info,
+                proplists:get_value(pattern, Info)),
+    Right = proplists:get_value(value, Info,
+                proplists:get_value(unexpected_success, Info,
+                    proplists:get_value(unexpected_exception, Info))),
+    LeftFmt = case proplists:is_defined(pattern, Info) of
         true ->
-            Left = proplists:get_value(expected, Info,
-                        proplists:get_value(pattern, Info)),
-            Right = proplists:get_value(value, Info,
-                        proplists:get_value(unexpected_success, Info,
-                            proplists:get_value(unexpected_exception, Info))),
-            LeftFmt = case proplists:is_defined(pattern, Info) of
-                true ->
-                    "~ts";
-                false ->
-                    "~tp"
-            end,
-            RightFmt = "~tP",
-            Filename = maps:get(file, Test),
-            {line, Ln} = proplists:lookup(line, Info),
-            Lns = readlines(Filename),
-            LnExpr = lists:nth(Ln, Lns),
-            Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), <<"\s">>)),
-            [
-                <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
-                <<"\n">>,
-                <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
-                <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
-                <<"\n">>,
-                format_pre_code(Test, Pd),
-                <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
-                <<"\s">>, {{to_bin, Ln}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, LnExpr, <<"\n">>,
-                <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
-                <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
-                <<"\n">>
-            ];
+            "~ts";
         false ->
-            [
-                <<"\s\s\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
-                <<"\n">>,
-                <<"\s\s\s">>, {{fmt, "~tp", [Info]}, {fg, red}},
-                <<"\n">>
-            ]
-    end.
+            "~tp"
+    end,
+    RightFmt = "~tP",
+    Filename = maps:get(file, Test),
+    {line, Ln} = proplists:lookup(line, Info),
+    Lns = readlines(Filename),
+    LnExpr = lists:nth(Ln, Lns),
+    Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), <<"\s">>)),
+    [
+        <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, Reason}, {fg, bright_black}}, <<"\n">>,
+        <<"\n">>,
+        <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
+        <<"\n">>,
+        format_pre_code(Test, Pd),
+        <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
+        <<"\s">>, {{to_bin, Ln}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, LnExpr, <<"\n">>,
+        <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
+        <<"\n">>
+    ].
 
 print_error(Class, Reason, Stacktrace) ->
     [

@@ -28,10 +28,12 @@
 test(Tests) ->
     test(Tests, rebar3_config).
 
+test({_Desc, []}, _Opts) ->
+    ok;
 test(Tests, rebar3_config) ->
-    eunit:test(Tests, rebar3_config_opts());
+    eunit:test({inparallel, Tests}, rebar3_config_opts());
 test(Tests, Options) when is_list(Options) ->
-    eunit:test(Tests, Options).
+    eunit:test({inparallel, Tests}, Options).
 
 %%%=====================================================================
 %%% Support functions
