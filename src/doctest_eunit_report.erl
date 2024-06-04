@@ -263,19 +263,19 @@ print_output(#{output := Out}) ->
             ])
     end.
 
-format_error({error, {doctest, Reason}, Stack}, _Test) ->
-    erlang:raise(error, {doctest, Reason}, Stack);
-format_error({error, {assertEqual, Info}, Stack}, Test) ->
+format_error({error, {doctest, Reason}, Stacktrace}, _Test) ->
+    erlang:raise(error, {doctest, Reason}, Stacktrace);
+format_error({error, {assertEqual, Info}, Stacktrace}, Test) ->
     case proplists:lookup(doctest, Info) of
         {doctest, DocTest} ->
-            print_doctest(DocTest, {assertEqual, Info}, Test, Stack);
+            print_doctest(DocTest, {assertEqual, Info}, Test, Stacktrace);
         none ->
-            print_test({assertEqual, Info}, Test, Stack)
+            print_test({assertEqual, Info}, Test, Stacktrace)
     end;
-format_error({error, {Reason, Info}, Stack}, Test) ->
-    print_test({Reason, Info}, Test, Stack);
-format_error({exit, Reason, Stack}, Test) ->
-    print_test({exit, Reason}, Test, Stack).
+format_error({error, {Reason, Info}, Stacktrace}, Test) ->
+    print_test({Reason, Info}, Test, Stacktrace);
+format_error({Class, Reason, Stacktrace}, _Test) ->
+    print_error(Class, Reason, Stacktrace).
 
 print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test, _Stack) ->
     Left = proplists:get_value(expected, Info),
@@ -344,6 +344,14 @@ print_test({ErrReason, Info}, Test, _Stacktrace) ->
                 <<"\n">>
             ]
     end.
+
+print_error(Class, Reason, Stacktrace) ->
+    [
+        <<"\s\s\s❌\s"/utf8>>, {{to_bin, {Class, Reason}}, {fg, bright_black}}, <<"\n">>,
+        <<"\n">>,
+        <<"\s\s\s">>, {{fmt, "~tp", [Stacktrace]}, {fg, red}},
+        <<"\n">>
+    ].
 
 readlines(Filename) ->
     {ok, Data} = file:read_file(Filename),
