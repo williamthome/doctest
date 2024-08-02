@@ -48,6 +48,8 @@ chunks({Mod, Forms}) ->
                     cause => "doctest requires 'debug_info' in compiler options"
                 }}
             ]);
+        {error, cover_compiled} ->
+            [];
         {error, Reason} ->
             error(Reason, [{Mod, Forms}], [
                 {error_info, #{

@@ -140,17 +140,13 @@ test_info(#{desc := undefined} = D) ->
     D#{tag => <<"unknown">>, file => none}.
 
 guess_ln({M, F, A}) ->
-    case fun_line(mod_ast(M), F, A) of
+    Forms = doctest_extract:module_forms(M),
+    case fun_line(Forms, F, A) of
         {ok, Ln} ->
             Ln;
         error ->
             0
     end.
-
-mod_ast(Mod) ->
-    {ok, {Mod, Chunks}} = beam_lib:chunks(code:which(Mod), [abstract_code]),
-    [{abstract_code, {_, AST}}] = Chunks,
-    AST.
 
 fun_line([{function, Anno, F, A, _} | _], F, A) ->
     {ok, erl_anno:line(Anno)};
