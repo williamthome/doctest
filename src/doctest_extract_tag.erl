@@ -62,18 +62,30 @@ code_blocks(Doc) ->
 filtermap_entries([#entry{data = []} | Entries]) ->
     filtermap_entries(Entries);
 filtermap_entries([#entry{name = module, data = Data} | Entries]) ->
-    [{entry_ln(Data), moduledoc} | filtermap_entries(Entries)];
+    case entry_ln(Data) of
+        {ok, Ln} ->
+            [{Ln, moduledoc} | filtermap_entries(Entries)];
+        none ->
+            filtermap_entries(Entries)
+    end;
 filtermap_entries([#entry{name = {F, A}, data = Data} | Entries]) ->
-    [{entry_ln(Data), {doc, {F, A}}} | filtermap_entries(Entries)];
+    case entry_ln(Data) of
+        {ok, Ln} ->
+            [{Ln, {doc, {F, A}}} | filtermap_entries(Entries)];
+        none ->
+            filtermap_entries(Entries)
+    end;
 filtermap_entries([_ | Entries]) ->
     filtermap_entries(Entries);
 filtermap_entries([]) ->
     [].
 
 entry_ln([#tag{name = doc, origin = comment, line = Ln} | _]) ->
-    Ln;
+    {ok, Ln};
 entry_ln([_ | Elems]) ->
-    entry_ln(Elems).
+    entry_ln(Elems);
+entry_ln([]) ->
+    none.
 
 token({Mod, Fun, Arity}) ->
     {doc, {Mod, Fun, Arity}, <<"@doc">>};
