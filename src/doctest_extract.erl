@@ -17,6 +17,7 @@
 
 % API functions
 -export([ module_tests/2
+        , module_forms/1
         , forms_tests/2
         , code_blocks/2
         , default_extractors/0
@@ -56,6 +57,14 @@
 module_tests(Mod, Opts) when is_atom(Mod) ->
     forms_tests(module_forms(Mod), Opts).
 
+module_forms(Mod) ->
+    case cover:is_compiled(Mod) of
+        {file, Filename} ->
+            do_module_forms(Filename);
+        false ->
+            do_module_forms(code:which(Mod))
+    end.
+
 forms_tests(Forms, Opts) when is_map(Opts) ->
     Mod = doctest_forms:module(Forms),
     Extractors = extractors(Opts),
@@ -84,9 +93,9 @@ default_extractors() ->
 %%% Internal functions
 %%%=====================================================================
 
-module_forms(Mod) ->
-    {ok, {Mod, [{abstract_code, {_, AST}}]}} =
-        beam_lib:chunks(code:which(Mod), [abstract_code]),
+do_module_forms(Filename) ->
+    {ok, {_Mod, [{abstract_code, {_, AST}}]}} =
+        beam_lib:chunks(Filename, [abstract_code]),
     AST.
 
 extractors(#{extractors := []}) ->
