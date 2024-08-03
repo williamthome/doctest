@@ -93,7 +93,7 @@ The options are passed via a map:
 #{
     % Enable or turn off any test.
     % Default: true.
-    enabled => boolean(), false.
+    enabled => boolean(),
 
     % Enable or turn off module doc tests.
     % Default: true.
