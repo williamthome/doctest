@@ -252,7 +252,7 @@ format_title(Title) ->
     Dirname = filename:dirname(Filename),
     Basename = filename:basename(Filename, ".erl"),
     [
-        {Dirname, {fg, bright_black}}, <<"/">>,
+        {<<Dirname/binary, $/>>, {fg, bright_black}},
         {Basename, bold},
         {{fmt, ".erl:~s", [Ln]}, {fg, bright_black}}
     ].
