@@ -2,7 +2,7 @@
 
 An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
 
-> **Note**
+> [!NOTE]
 >
 > The `-moduledoc` and `-doc` attributes were introduced in [OTP 27](https://www.erlang.org/docs/27/system/documentation).
 
@@ -15,7 +15,7 @@ An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
     {test, [
         % 'debug_info' is required to extract doc chunks.
         {erl_opts, [debug_info]},
-        {deps, [{doctest, "0.9.2"}]}
+        {deps, [{doctest, "0.9.3"}]}
     ]}
 ]}.
 % 'doctest_eunit_report' is required to pretty print and correctly displays the failed tests.
@@ -25,7 +25,9 @@ An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
 ## Overview
 
 Erlang documentation can be written:
+
 - Via [EDoc](https://www.erlang.org/doc/apps/edoc/chapter) by using the `@doc` tag, e.g.:
+
   ````erlang
   %% @doc Prints "Hello, Joe!"
   %% Example:
@@ -35,7 +37,10 @@ Erlang documentation can be written:
   %% '''
   print() -> "Hello, Joe!".
   ````
-- Or via [ExDoc](https://hexdocs.pm/ex_doc/readme.html), by using the `-moduledoc` and `-doc` attributes [introduced in OTP 27](https://www.erlang.org/doc/system/documentation), e.g.:
+
+- Or via [ExDoc](https://hexdocs.pm/ex_doc/readme.html), by using the `-moduledoc` and
+`-doc` attributes [introduced in OTP 27](https://www.erlang.org/doc/system/documentation), e.g.:
+
   ````erlang
   -doc """
   Prints "Hello, Joe!"
@@ -48,7 +53,12 @@ Erlang documentation can be written:
   print() -> "Hello, Joe!".
   ````
 
-There are some rules to test documentation. One rule is that only code blocks are testable. Via `EDoc/tags`, code blocks are code between ` ``` ` and `'''` (triple backticks and triple single quotes), and via `ExDoc/attributes`, they are code between ` ``` ` and ` ``` ` (triple quotes and triple quotes). The code of the code blocks follows the same rules as the current Erlang shell, for example:
+There are some rules to test documentation. One rule is that only code blocks
+are testable. Via `EDoc/tags`, code blocks are code between ` ``` ` and `'''` 
+(triple backticks and triple single quotes), and via `ExDoc/attributes`, 
+they are code between ` ``` ` and ` ``` ` (triple quotes and triple quotes). 
+The code of the code blocks follows the same rules as the current Erlang shell, for example:
+
 ```erlang
 1> % - Comments and multiline expressions are allowed;
 .. % - Number sequence must be respected, starting from 1 to N;
@@ -66,16 +76,22 @@ true
 ## Usage
 
 There are two ways to test your documentation:
+
 - Manually calling `doctest:module/1,2` functions in the Erlang shell, e.g.:
+
   ```erlang
   1> doctest:module(greeting, #{
      % Options (please see the options below)
   }).
   ```
-- Or via parse transformation by using the `doctest_transform` module included in the `doctest/include/doctest.hrl` and then running `rebar3 eunit`, e.g.:
+
+- Or via parse transformation by using the `doctest_transform` module included
+in the `doctest/include/doctest.hrl` and then running `rebar3 eunit`, e.g.:
+
   ```erlang
   -ifdef(TEST).
-  % The doctest header exports all functions and sets `doctest_transform` as a parse_transform:
+  % The doctest header exports all functions and sets `doctest_transform`
+  % as a parse_transform:
   -include_lib("doctest/include/doctest.hrl").
   -doctest #{
       % Options (please see the options below)
@@ -99,15 +115,18 @@ The options are passed via a map:
     % Default: true.
     moduledoc => boolean(),
 
-    % Enable or turn off functions doc tests or define a list of functions to be tested.
+    % Enable or turn off functions doc tests or define a list of functions
+    % to be tested.
     % Default: true.
     doc => boolean() | [{atom(), arity()}],
 
-    % Set the EUnit options. 'rebar3_config' tries to resolve the options defined in the rebar3.
+    % Set the EUnit options. 'rebar3_config' tries to resolve the options
+    % defined in the rebar3.
     % Default: rebar3_config.
     eunit_opts => rebar3_config | [term()],
 
-    % Overrides the code blocks extractors. See the 'doctest_extract' behavior. Custom extractors are allowed.
+    % Overrides the code blocks extractors. See the 'doctest_extract'
+    % behavior. Custom extractors are allowed.
     % Default:
     % - OTP < 27: [doctest_extract_tag];
     % - OTP >= 27: [doctest_extract_attr, doctest_extract_tag].
@@ -115,39 +134,53 @@ The options are passed via a map:
 }
 ```
 
-> **Note**
+> [!NOTE]
 >
-> Please see the [rebar documentation](https://rebar3.org/docs/testing/eunit/#eunit_opts) for more information about the EUnit options.
+> Please see the [rebar documentation](https://rebar3.org/docs/testing/eunit/#eunit_opts)
+> for more information about the EUnit options.
 
-In a module, the `-doctest` attribute is used to override the default settings via a map, e.g., `-doctest #{enabled => true}.`, or via some shortcuts, for example:
+In a module, the `-doctest` attribute is used to override the default settings
+via a map, e.g., `-doctest #{enabled => true}.`, or via some shortcuts, for example:
+
 - `{enabled, boolean()}` or `boolean()`: equivalent to enabled option.
+
   ```erlang
   -doctest true.
   ```
+
 - `{moduledoc, boolean()}`: equivalent to moduledoc option.
+
   ```erlang
   -doctest {moduledoc, true}.
   ```
+
 - `{doc, boolean() | [{atom(), arity()}]}` or `[{atom(), arity()}]`: equivalent to doc option.
+
   ```erlang
   -doctest [print/0].
   ```
+
 - `{eunit_opts, rebar3_config | term()}`: equivalent to eunit_opts option.
+
   ```erlang
   -doctest {eunit_opts, rebar3_config}.
   ```
+
 - `{extractors, [module()]}`: equivalent to extractors option.
+
   ```erlang
   -doctest {extractors, [doctest_extract_attr, doctest_extract_tag]}.
   ```
 
-> **Note**
+> [!NOTE]
 >
 > Multiple `-doctest` attributes are allowed.
 
 #### Global Options
 
-Options can be globally defined via a [config file](https://www.erlang.org/doc/man/config.html), e.g.:
+Options can be globally defined via a
+[config file](https://www.erlang.org/doc/man/config.html), e.g.:
+
 ```erlang
 % config/sys.config
 [{doctest, [
@@ -167,11 +200,14 @@ Please make sure to add the config file to the rebar3 config, e.g.:
 
 ## Example
 
-> **Important**
+> [!IMPORTANT]
 >
-> If the OTP version is below 27, please only consider the `@doc` tags inside comments as a valid code. The `-moduledoc` and `-doc` attributes are valid if the OTP version is equal to or above 27.
+> If the OTP version is below 27, please only consider the `@doc` tags inside
+> comments as a valid code. The `-moduledoc` and `-doc` attributes are valid
+> if the OTP version is equal to or above 27.
 
 Take this module:
+
 ````erlang
  1 │ -module(greeting).
  2 │ -moduledoc """
@@ -212,16 +248,21 @@ Take this module:
 ````
 
 As mentioned before, there are two ways to run the tests.
+
 - Via `doctest:module/1,2` in the Erlang shell, e.g.:
+
     ```shell
     $ rebar3 as test shell
     ```
+
     ```erlang
     1> doctest:module(greeting).
     ```
+
 - Or via `rebar3 eunit`
 
 Both produce the same output:
+
 ```shell
  PASS  ./src/greeting.erl:6 -moduledoc
  FAIL  ./src/greeting.erl:19 -doc
@@ -257,13 +298,14 @@ Tests: 2 failed, 2 passed, 4 total
  Time: 0.014 seconds
 ```
 
-> **Note**
+> [!NOTE]
 >
 > The output above is by using the `doctest_eunit_report` as the EUnit report.
 
 ## Doctest EUnit Reporter
 
-There is a built-in EUnit reporter called `doctest_eunit_report` to display the tests results correctly. Set it in the EUnit options of the project options, e.g.:
+There is a built-in EUnit reporter called `doctest_eunit_report` to display the
+tests results correctly. Set it in the EUnit options of the project options, e.g.:
 
 ```erlang
 % rebar3.config
@@ -272,12 +314,6 @@ There is a built-in EUnit reporter called `doctest_eunit_report` to display the 
 
 An example of the `doctest_eunit_report` output:
 ![doctest_eunit_report](/assets/reporter-go-to-definition.gif)
-
-## TODO
-
-- [ ] More tests
-- [ ] Specs
-- [ ] Improve docs
 
 ## Sponsors
 
