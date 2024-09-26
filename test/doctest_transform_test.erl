@@ -114,17 +114,4 @@ nocodeblock() ->
 notestcodeblock() ->
     ok.
 
-%% @doc
-%% ```
-%% 1> Foo = "foo".
-%% "foo"
-%% 2> doctest_transform_test:concat(
-%% .. Foo,
-%% ..   "bar"
-%% .. ).
-%% "foobar"
-%% '''
-concat(A, B) ->
-    A ++ B.
-
 -endif.

@@ -170,12 +170,6 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
                     fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
                         {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, {value,
                             fun(Name, Args) ->
-                                % TODO: Maybe warn about testing non-exported functions.
-                                % logger:warning(<<"testing a private function">>, #{
-                                %     mfa => {Mod, Fun, Arity},
-                                %     file => Filename,
-                                %     line => LeftLn
-                                % }),
                                 erlang:apply(Mod, Name, Args)
                             end
                         }),
