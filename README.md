@@ -1,5 +1,7 @@
 # doctest
 
+⚠️ **This lib is no longer maintained in favor of the [doctests introduced in OTP-28](https://github.com/erlang/otp/pull/9315).**
+
 An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
 
 > [!NOTE]
