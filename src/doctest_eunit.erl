@@ -43,10 +43,10 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
     case catch tests(Mod, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
-                case LeftValue =:= RightValue of
-                    true ->
+                case LeftValue of
+                    RightValue ->
                         ok;
-                    false ->
+                    _ ->
                         error({assertEqual, [
                             {doctest, #{
                                 attribute => moduledoc,
@@ -92,10 +92,10 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
     case catch tests(M, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, M, LeftLn), {M, F, A}, fun() ->
-                case LeftValue =:= RightValue of
-                    true ->
+                case LeftValue of
+                    RightValue ->
                         ok;
-                    false ->
+                    _ ->
                         error({assertEqual, [
                             {doctest, #{
                                 attribute => doc,
@@ -168,17 +168,22 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
             {ok, Asserts} ->
                 lists:reverse(element(2, lists:foldl(
                     fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
-                        {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, {value,
-                            fun(Name, Args) ->
-                                erlang:apply(Mod, Name, Args)
-                            end
-                        }),
-                        {RightValue, []} = eval(Right, RightLn, []),
-                        Test = Callback(
-                            {pp(Left), LeftLn, LeftValue},
-                            {pp(Right), RightLn, RightValue}
-                        ),
-                        {NewBindings, [Test | Acc1]}
+                        LocalFunctionHandler = {value, fun(Name, Args) ->
+                            erlang:apply(Mod, Name, Args)
+                        end},
+                        {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, LocalFunctionHandler),
+                        % Skip when no right value
+                        case Right of
+                            [{var, _, '_'}] ->
+                                {NewBindings, Acc1};
+                            _ ->
+                                {RightValue, _} = eval(Right, RightLn, []),
+                                Test = Callback(
+                                    {pp(Left), LeftLn, LeftValue},
+                                    {pp(Right), RightLn, RightValue}
+                                ),
+                                {NewBindings, [Test | Acc1]}
+                        end
                     end, {[], Acc}, lists:reverse(Asserts)
                 )));
             {error, Reason} ->
@@ -219,26 +224,28 @@ split_lines(CodeBlock) ->
 chunks(Parts) ->
     Opts = [{capture, all_but_first, binary}],
     lists:map(fun(Part) ->
-        case re:run(Part, <<"^([1-9][0-9]*)>\\s(.*?)\\.*$">>, Opts) of
+        case re:run(Part, <<"^([1-9][0-9]*)?>\\s(.*?)\\.*$">>, Opts) of
+            {match, [<<>>, Left]} ->
+                {left, {undefined, Left}};
             {match, [N, Left]} ->
                 {left, {N, Left}};
             nomatch ->
-                case re:run(Part, <<"^(\\s*)\\.\\.\\s(.*?)\\.*$">>, Opts) of
-                    {match, [Ws, More]} ->
-                        {more, {Ws, More}};
+                case re:run(Part, <<"^(\\s*)(\\.*)\\s(.*?)\\.*$">>, Opts) of
+                    {match, [Ws, Dots, More]} ->
+                        {more, {Ws, Dots, More}};
                     nomatch ->
                         {right, Part}
                 end
         end
     end, Parts).
 
-asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
-    case check_more_format(Ws, N) of
+asserts([{left, {N, L}}, {more, {Ws, Dots, M}} | T], HI, {Ln, NLn}, Acc) ->
+    case check_more_format(N, Ws) of
         ok ->
             asserts([{left, {N, [scan(L), scan(M)]}} | T], HI, {Ln, NLn+1}, Acc);
         {error, {EWs, RWs}} ->
-            Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), "..> ", M]),
-            Received = iolist_to_binary([lists:duplicate(RWs, "\s"), "..> ", M]),
+            Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), Dots, "> ", M]),
+            Received = iolist_to_binary([lists:duplicate(RWs, "\s"), Dots, "> ", M]),
             {error, {format, #{
                 line => NLn+1,
                 expected => Expected,
@@ -253,13 +260,15 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
             asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
-            Received = iolist_to_binary([N, "> ", H]),
+            Received = iolist_to_binary([case N of undefined -> <<>>; _ -> N end, "> ", H]),
             {error, {format, #{
                 line => Ln,
                 expected => Expected,
                 received => Received
             }}}
     end;
+asserts([{left, _} = Left, {left, _} = Next | T], HI, {Ln, NLn}, Acc) ->
+    asserts([Left, {right, <<"_">>}, Next | T], HI, {Ln, NLn}, Acc);
 % Code block is not a test, e.g:
 % foo() ->
 %     bar.
@@ -277,7 +286,9 @@ parse(Tokens) ->
     {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
     Exprs.
 
-check_more_format(Ws, Ln) ->
+check_more_format(undefined, _Ws) ->
+    ok;
+check_more_format(Ln, Ws) ->
     LnSz = max(0, byte_size(Ln) - 1),
     WsSz = byte_size(Ws),
     case WsSz =:= LnSz of
@@ -287,6 +298,8 @@ check_more_format(Ws, Ln) ->
             {error, {LnSz, WsSz}}
     end.
 
+check_left_index(undefined, _Ln) ->
+    ok;
 check_left_index(N, Ln) ->
     case catch binary_to_integer(N) =:= Ln of
         true ->

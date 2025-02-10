@@ -20,7 +20,7 @@
 -export([chunks/1, code_blocks/1]).
 
 -define(CODE_BLOCK_RE,
-    "(?ms)^(```[`]*)erlang\\s*\\n" % ```erlang
+    "(?ms)^(```[`]*)(?:erlang)?\\s*\\n" % ```erlang
     "(.*?)"                        % <erlang-code>
     "(?:\\n^(\\1)(\\s+|\\n|$))"    % ```
 ).
