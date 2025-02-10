@@ -1,8 +1,8 @@
 # doctest
 
-⚠️ **This lib is no longer maintained in favor of the [doctests introduced in OTP-28](https://github.com/erlang/otp/pull/9315).**
-
 An Erlang library to test `@doc` tags and `-moduledoc` and `-doc` attributes.
+
+It is compatible with the [doctests syntax introduced in OTP-28](https://github.com/erlang/otp/pull/9315).
 
 > [!NOTE]
 >
@@ -31,10 +31,12 @@ Erlang documentation can be written:
 - Via [EDoc](https://www.erlang.org/doc/apps/edoc/chapter) by using the `@doc` tag, e.g.:
 
   ````erlang
-  %% @doc Prints "Hello, Joe!"
+  %% @doc Prints "Hello, Joe!".
+  %%
   %% Example:
+  %%
   %% ```
-  %% 1> print().
+  %% > print().
   %% "Hello, Joe!"
   %% '''
   print() -> "Hello, Joe!".
@@ -45,10 +47,12 @@ Erlang documentation can be written:
 
   ````erlang
   -doc """
-  Prints "Hello, Joe!"
+  Prints "Hello, Joe!".
+
   Example:
-  ```erlang
-  1> print().
+
+  ```
+  > print().
   "Hello, Joe!"
   ```
   """.
@@ -56,24 +60,47 @@ Erlang documentation can be written:
   ````
 
 There are some rules to test documentation. One rule is that only code blocks
-are testable. Via `EDoc/tags`, code blocks are code between ` ``` ` and `'''` 
-(triple backticks and triple single quotes), and via `ExDoc/attributes`, 
-they are code between ` ``` ` and ` ``` ` (triple quotes and triple quotes). 
+are testable. Via `EDoc/tags`, code blocks are code between ` ``` ` and `'''`
+(triple backticks and triple single quotes), and via `ExDoc/attributes`,
+they are code between ` ``` ` and ` ``` ` (triple quotes and triple quotes).
 The code of the code blocks follows the same rules as the current Erlang shell, for example:
 
 ```erlang
-1> % - Comments and multiline expressions are allowed;
-.. % - Number sequence must be respected, starting from 1 to N;
-.. % - Multiline expressions must be aligned;
-.. % - Invalid syntaxes are skipped.
-.. print().
+> % - Comments and multiline expressions are allowed;
+  % - Multiline expressions must be aligned;
+  % - Invalid syntaxes are skipped.
+  print().
 "Hello, Joe!"
-2> % All tests compare the equality between the expression and
-.. % the result (left = right). The example below is translated to:
-.. % ?assertEqual(true, print() =/= "Hello, World!")
-.. print() =/= "Hello, World!".
+> % All tests compare the equality between the expression and the result.
+  % The example below is translated to an `?assertEqual` macro result:
+  % > ?assertEqual(print() =/= "Hello, World", true).
+  print() =/= "Hello, World!".
 true
 ```
+
+### Optionally
+
+1. Variable outputs can be skipped by replacing the right side (result) by an
+   underscore (`_`) or without giving a result to it by starting a new expression
+2. The `erlang` language in code blocks is not required
+3. The syntax can contains the line numbers and dots between multiple lines,
+   like in the erlang shell
+
+For example:
+
+````erlang
+-doc """
+```erlang
+1> Foo =
+.. foo.
+_
+2> Bar = Foo.
+3> foo(Bar).
+foo
+```
+""".
+foo(Foo) -> Foo.
+````
 
 ## Usage
 
@@ -82,7 +109,7 @@ There are two ways to test your documentation:
 - Manually calling `doctest:module/1,2` functions in the Erlang shell, e.g.:
 
   ```erlang
-  1> doctest:module(greeting, #{
+  > doctest:module(greeting, #{
      % Options (please see the options below)
   }).
   ```
@@ -107,6 +134,7 @@ in the `doctest/include/doctest.hrl` and then running `rebar3 eunit`, e.g.:
 ### Options
 
 The options are passed via a map:
+
 ```erlang
 #{
     % Enable or turn off any test.
@@ -195,6 +223,7 @@ Options can be globally defined via a
 ```
 
 Please make sure to add the config file to the rebar3 config, e.g.:
+
 ```erlang
 {shell, [{config, "config/sys.config"}]}.
 {eunit_opts, [{sys_config, ["config/sys.config"]}]}.
@@ -215,8 +244,8 @@ Take this module:
  2 │ -moduledoc """
  3 │ Module documentation are testable.
  4 │
- 5 │ ```erlang
- 6 │ 1> greeting:print() =:= "Hello, Joe!".
+ 5 │ ```
+ 6 │ > greeting:print() =:= "Hello, Joe!".
  7 │ true
  8 │ ```
  9 │ """.
@@ -228,8 +257,8 @@ Take this module:
 15 │ -endif.
 16 │
 17 │ -doc """
-18 │ ```erlang
-19 │ 1> greeting:print().
+18 │ ```
+19 │ > greeting:print().
 20 │ "Hello, World!"
 21 │ ```
 22 │ """.
@@ -239,10 +268,10 @@ Take this module:
 26 │ %% @doc Non-exported functions are testable.
 27 │ %%
 28 │ %% ```
-29 │ %% 1> % Bound variables to a value is valid, e.g.:
-30 │ %% .. Greeting = hello().
+29 │ %% > % Bound variables to a value is valid, e.g.:
+30 │ %%   Greeting = hello().
 31 │ %% "Hello, Joe!"
-32 │ %% 2> Greeting =:= "Hello, World!".
+32 │ %% > Greeting =:= "Hello, World!".
 33 │ %% true
 34 │ %% '''
 35 │ hello() ->
@@ -258,7 +287,7 @@ As mentioned before, there are two ways to run the tests.
     ```
 
     ```erlang
-    1> doctest:module(greeting).
+    > doctest:module(greeting).
     ```
 
 - Or via `rebar3 eunit`
@@ -275,7 +304,7 @@ Both produce the same output:
     Received: "Hello, Joe!"
 
     │
- 19 │ 1> greeting:print().
+ 19 │ > greeting:print().
  20 │ "Hello, World!"
     │
     └── at ./src/greeting.erl:19
@@ -289,7 +318,7 @@ Both produce the same output:
     Received: false
 
     │
- 32 │ %% 2> Greeting =:= "Hello, World!".
+ 32 │ %% > Greeting =:= "Hello, World!".
  33 │ %% true
     │
     └── at ./src/greeting.erl:32
