@@ -58,7 +58,7 @@ module_tests(Mod, Opts) when is_atom(Mod) ->
     forms_tests(module_forms(Mod), Opts).
 
 module_forms(Mod) ->
-    case cover:is_compiled(Mod) of
+    case is_cover_mod_loaded() andalso cover:is_compiled(Mod) of
         {file, Filename} ->
             do_module_forms(Filename);
         false ->
@@ -92,6 +92,12 @@ default_extractors() ->
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
+
+is_cover_mod_loaded() ->
+    Apps = application:loaded_applications(),
+    lists:member(fun({Mod, _Desc, _Vsn}) ->
+        Mod =:= cover
+    end, Apps).
 
 do_module_forms(Filename) ->
     {ok, {_Mod, [{abstract_code, {_, AST}}]}} =
