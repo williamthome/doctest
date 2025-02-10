@@ -219,7 +219,9 @@ split_lines(CodeBlock) ->
 chunks(Parts) ->
     Opts = [{capture, all_but_first, binary}],
     lists:map(fun(Part) ->
-        case re:run(Part, <<"^([1-9][0-9]*)>\\s(.*?)\\.*$">>, Opts) of
+        case re:run(Part, <<"^([1-9][0-9]*)?>\\s(.*?)\\.*$">>, Opts) of
+            {match, [<<>>, Left]} ->
+                {left, {undefined, Left}};
             {match, [N, Left]} ->
                 {left, {N, Left}};
             nomatch ->
@@ -233,7 +235,7 @@ chunks(Parts) ->
     end, Parts).
 
 asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
-    case check_more_format(Ws, N) of
+    case check_more_format(N, Ws) of
         ok ->
             asserts([{left, {N, [scan(L), scan(M)]}} | T], HI, {Ln, NLn+1}, Acc);
         {error, {EWs, RWs}} ->
@@ -253,7 +255,7 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
             asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
-            Received = iolist_to_binary([N, "> ", H]),
+            Received = iolist_to_binary([case N of undefined -> <<>>; _ -> N end, "> ", H]),
             {error, {format, #{
                 line => Ln,
                 expected => Expected,
@@ -277,7 +279,9 @@ parse(Tokens) ->
     {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
     Exprs.
 
-check_more_format(Ws, Ln) ->
+check_more_format(undefined, _Ws) ->
+    ok;
+check_more_format(Ln, Ws) ->
     LnSz = max(0, byte_size(Ln) - 1),
     WsSz = byte_size(Ws),
     case WsSz =:= LnSz of
@@ -287,6 +291,8 @@ check_more_format(Ws, Ln) ->
             {error, {LnSz, WsSz}}
     end.
 
+check_left_index(undefined, _Ln) ->
+    ok;
 check_left_index(N, Ln) ->
     case catch binary_to_integer(N) =:= Ln of
         true ->
