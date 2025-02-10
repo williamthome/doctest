@@ -59,7 +59,12 @@
 %%%=====================================================================
 
 module_tests(Mod, Opts) when is_atom(Mod) ->
-    forms_tests(module_forms(Mod), Opts).
+    case module_forms(Mod) of
+        {ok, Forms} ->
+            forms_tests(Forms, Opts);
+        error ->
+            []
+    end.
 
 module_forms(Mod) ->
     case is_cover_mod_loaded() andalso cover:is_compiled(Mod) of
@@ -104,9 +109,12 @@ is_cover_mod_loaded() ->
     end, Apps).
 
 do_module_forms(Filename) ->
-    {ok, {_Mod, [{abstract_code, {_, AST}}]}} =
-        beam_lib:chunks(Filename, [abstract_code]),
-    AST.
+    case beam_lib:chunks(Filename, [abstract_code]) of
+        {ok, {_Mod, [{abstract_code, {_, Ast}}]}} ->
+            {ok, Ast};
+        {error, beam_lib, _} ->
+            error
+    end.
 
 extractors(#{extractors := []}) ->
     default_extractors();
