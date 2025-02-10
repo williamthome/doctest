@@ -43,10 +43,10 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
     case catch tests(Mod, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
-                case LeftValue =:= RightValue of
-                    true ->
+                case LeftValue of
+                    RightValue ->
                         ok;
-                    false ->
+                    _ ->
                         error({assertEqual, [
                             {doctest, #{
                                 attribute => moduledoc,
@@ -92,10 +92,10 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
     case catch tests(M, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, M, LeftLn), {M, F, A}, fun() ->
-                case LeftValue =:= RightValue of
-                    true ->
+                case LeftValue of
+                    RightValue ->
                         ok;
-                    false ->
+                    _ ->
                         error({assertEqual, [
                             {doctest, #{
                                 attribute => doc,
@@ -168,17 +168,22 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
             {ok, Asserts} ->
                 lists:reverse(element(2, lists:foldl(
                     fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
-                        {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, {value,
-                            fun(Name, Args) ->
-                                erlang:apply(Mod, Name, Args)
-                            end
-                        }),
-                        {RightValue, []} = eval(Right, RightLn, []),
-                        Test = Callback(
-                            {pp(Left), LeftLn, LeftValue},
-                            {pp(Right), RightLn, RightValue}
-                        ),
-                        {NewBindings, [Test | Acc1]}
+                        LocalFunctionHandler = {value, fun(Name, Args) ->
+                            erlang:apply(Mod, Name, Args)
+                        end},
+                        {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, LocalFunctionHandler),
+                        % Skip when no right value
+                        case Right of
+                            [{var, _, '_'}] ->
+                                {NewBindings, Acc1};
+                            _ ->
+                                {RightValue, _} = eval(Right, RightLn, []),
+                                Test = Callback(
+                                    {pp(Left), LeftLn, LeftValue},
+                                    {pp(Right), RightLn, RightValue}
+                                ),
+                                {NewBindings, [Test | Acc1]}
+                        end
                     end, {[], Acc}, lists:reverse(Asserts)
                 )));
             {error, Reason} ->
@@ -262,6 +267,8 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
                 received => Received
             }}}
     end;
+asserts([{left, _} = Left, {left, _} = Next | T], HI, {Ln, NLn}, Acc) ->
+    asserts([Left, {right, <<"_">>}, Next | T], HI, {Ln, NLn}, Acc);
 % Code block is not a test, e.g:
 % foo() ->
 %     bar.
