@@ -37,7 +37,9 @@ Skip with underscore.
 ```
 > Foo = foo.
 _
-> doctest_transform_test:skip_match(Foo).
+> doctest_transform_test:skip_match(
+.   Foo
+. ).
 foo
 ```
 
@@ -45,7 +47,9 @@ Skip when no right side.
 
 ```
 > Foo = foo.
-> doctest_transform_test:skip_match(Foo).
+> doctest_transform_test:skip_match(
+    Foo
+  ).
 foo
 ```
 """.
@@ -103,7 +107,9 @@ notestcodeblock() ->
 %% ```
 %% > Foo = foo.
 %% _
-%% > doctest_transform_test:skip_match(Foo).
+%% > doctest_transform_test:skip_match(
+%% .   Foo
+%% . ).
 %% foo
 %% '''
 %%
@@ -111,7 +117,9 @@ notestcodeblock() ->
 %%
 %% ```
 %% > Foo = foo.
-%% > doctest_transform_test:skip_match(Foo).
+%% > doctest_transform_test:skip_match(
+%%     Foo
+%%   ).
 %% foo
 %% '''
 skip_match(Foo) ->

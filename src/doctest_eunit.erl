@@ -230,22 +230,22 @@ chunks(Parts) ->
             {match, [N, Left]} ->
                 {left, {N, Left}};
             nomatch ->
-                case re:run(Part, <<"^(\\s*)\\.\\.\\s(.*?)\\.*$">>, Opts) of
-                    {match, [Ws, More]} ->
-                        {more, {Ws, More}};
+                case re:run(Part, <<"^(\\s*)(\\.*)\\s(.*?)\\.*$">>, Opts) of
+                    {match, [Ws, Dots, More]} ->
+                        {more, {Ws, Dots, More}};
                     nomatch ->
                         {right, Part}
                 end
         end
     end, Parts).
 
-asserts([{left, {N, L}}, {more, {Ws, M}} | T], HI, {Ln, NLn}, Acc) ->
+asserts([{left, {N, L}}, {more, {Ws, Dots, M}} | T], HI, {Ln, NLn}, Acc) ->
     case check_more_format(N, Ws) of
         ok ->
             asserts([{left, {N, [scan(L), scan(M)]}} | T], HI, {Ln, NLn+1}, Acc);
         {error, {EWs, RWs}} ->
-            Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), "..> ", M]),
-            Received = iolist_to_binary([lists:duplicate(RWs, "\s"), "..> ", M]),
+            Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), Dots, "> ", M]),
+            Received = iolist_to_binary([lists:duplicate(RWs, "\s"), Dots, "> ", M]),
             {error, {format, #{
                 line => NLn+1,
                 expected => Expected,
