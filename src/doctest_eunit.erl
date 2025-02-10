@@ -225,11 +225,11 @@ split_lines(CodeBlock) ->
 chunks(Parts) ->
     Opts = [{capture, all_but_first, binary}],
     lists:map(fun(Part) ->
-        case re:run(Part, <<"^([1-9][0-9]*)>\\s(.*?)\\.*$">>, Opts) of
+        case re:run(Part, <<"(?s)^([1-9][0-9]*)>\\s(.*?)\\.*$">>, Opts) of
             {match, [N, Left]} ->
                 {left, {N, Left}};
             nomatch ->
-                case re:run(Part, <<"^(\\s*)\\.\\.\\s(.*?)\\.*$">>, Opts) of
+                case re:run(Part, <<"(?s)^(\\s*)\\.\\.\\s(.*?)\\.*$">>, Opts) of
                     {match, [Ws, More]} ->
                         {more, {Ws, More}};
                     nomatch ->
