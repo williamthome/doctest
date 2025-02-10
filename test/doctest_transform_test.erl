@@ -20,16 +20,37 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_transform_test).
--export([sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0]).
+-export([skip_match/1, sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0]).
 
 -ifdef(TEST).
 -include("doctest.hrl").
--doctest [sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0].
+-doctest [skip_match/1, sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0].
 -endif.
 
 -include("src/doctest_check.hrl").
 
 -if(?IS_DOC_ATTRS_SUPPORTED).
+
+-doc """
+Skip with underscore.
+
+```
+> Foo = foo.
+_
+> doctest_transform_test:skip_match(Foo).
+foo
+```
+
+Skip when no right side.
+
+```
+> Foo = foo.
+> doctest_transform_test:skip_match(Foo).
+foo
+```
+""".
+skip_match(Foo) ->
+    Foo.
 
 -doc """
 ```erlang
@@ -75,6 +96,26 @@ notestcodeblock() ->
     ok.
 
 -else.
+
+%% @doc
+%% Skip with underscore.
+%%
+%% ```
+%% > Foo = foo.
+%% _
+%% > doctest_transform_test:skip_match(Foo).
+%% foo
+%% '''
+%%
+%% Skip when no right side.
+%%
+%% ```
+%% > Foo = foo.
+%% > doctest_transform_test:skip_match(Foo).
+%% foo
+%% '''
+skip_match(Foo) ->
+    Foo.
 
 %% @doc
 %% ```
