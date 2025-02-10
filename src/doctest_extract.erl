@@ -125,7 +125,7 @@ test_cases(Extractor, Chunks, Opts) ->
     lists:filtermap(fun({Kind, Ln, Doc}) ->
         case {Extractor:code_blocks(Doc), Kind} of
             {{ok, CodeBlocks}, {doc, {M, F, A}, Tag}} ->
-                case should_test_doc(Opts, {F, A}) of
+                case should_test_doc({M, F, A}, Opts) of
                     true ->
                         {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Ln, CodeBlocks, Tag)}};
                     false ->
@@ -155,13 +155,21 @@ should_test_moduledoc(#{moduledoc := false}) ->
 should_test_moduledoc(Opts) when not is_map_key(moduledoc, Opts) ->
     true.
 
-should_test_doc(#{doc := true}, _Fun) ->
+should_test_doc({M, F, A}, Opts) ->
+    case erlang:function_exported(M, F, A) of
+        true ->
+            do_should_test_doc(Opts, {F, A});
+        false ->
+            false
+    end.
+
+do_should_test_doc(#{doc := true}, _Fun) ->
     true;
-should_test_doc(#{doc := false}, _Fun) ->
+do_should_test_doc(#{doc := false}, _Fun) ->
     false;
-should_test_doc(#{doc := Funs}, Fun) when is_list(Funs) ->
+do_should_test_doc(#{doc := Funs}, Fun) when is_list(Funs) ->
     lists:member(Fun, Funs);
-should_test_doc(Opts, _Fun) when not is_map_key(doc, Opts) ->
+do_should_test_doc(Opts, _Fun) when not is_map_key(doc, Opts) ->
     true.
 
 loc(Doc, Pos) ->

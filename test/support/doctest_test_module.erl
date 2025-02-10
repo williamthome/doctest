@@ -37,13 +37,13 @@ true
 
 -if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
-Foo
+Test #1
 ```erlang
 1> % Test non-exported functions is allowed.
 .. foo().
 foo
 ```
-Bar
+Test #2
 ```erlang
 1> doctest_test_module:foo() =:= foo.
 true
@@ -51,6 +51,15 @@ true
 """.
 -endif.
 foo() ->
+    do_foo().
+
+%% @doc This function is private and should be skipped.
+%% ```
+%% 1> do_foo().
+%% foo
+%% '''
+
+do_foo() ->
     foo.
 
 %% @doc Comments are also supported.
