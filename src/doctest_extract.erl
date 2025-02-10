@@ -15,6 +15,10 @@
 %%%---------------------------------------------------------------------
 -module(doctest_extract).
 
+% Ignores the false positive:
+% > The pattern {'file', Filename} can never match the type 'false'
+-dialyzer({nowarn_function, module_forms/1}).
+
 % API functions
 -export([ module_tests/2
         , module_forms/1
