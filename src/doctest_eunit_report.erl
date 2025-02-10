@@ -140,10 +140,14 @@ test_info(#{desc := undefined} = D) ->
     D#{tag => <<"unknown">>, file => none}.
 
 guess_ln({M, F, A}) ->
-    Forms = doctest_extract:module_forms(M),
-    case fun_line(Forms, F, A) of
-        {ok, Ln} ->
-            Ln;
+    case doctest_extract:module_forms(M) of
+        {ok, Forms} ->
+            case fun_line(Forms, F, A) of
+                {ok, Ln} ->
+                    Ln;
+                error ->
+                    0
+            end;
         error ->
             0
     end.
