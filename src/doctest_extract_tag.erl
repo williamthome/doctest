@@ -19,11 +19,8 @@
 % doctest_extract callbacks
 -export([chunks/1, code_blocks/1]).
 
--define(CODE_BLOCK_RE,
-    "(?ms)^(```)\\s*\\n"        % ```
-    "(.*?)"                     % <erlang-code>
-    "(?:\\n^(''')(\\s+|\\n|$))" % ''')
-).
+% Contains CODE_BLOCK_RE
+-include("doctest_extract.hrl").
 
 % Contains the entry record.
 -include_lib("edoc/src/edoc.hrl").
