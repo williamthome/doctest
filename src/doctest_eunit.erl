@@ -268,7 +268,7 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
             }}}
     end;
 asserts([{left, _} = Left, {left, _} = Next | T], HI, {Ln, NLn}, Acc) ->
-    asserts([Left, {right, <<"_">>}, Next | T], HI, {Ln, NLn}, Acc);
+    asserts([Left, {right, <<"_">>}, Next | T], HI, {Ln-1, NLn-1}, Acc);
 % Code block is not a test, e.g:
 % foo() ->
 %     bar.
