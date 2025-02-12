@@ -140,6 +140,17 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     cause => Reason,
                     line => Ln
                 }}
+            ]);
+        {error, {parse, _Tokens, Ln}} ->
+            error({doctest, parse}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    attribute => doc,
+                    module => M,
+                    function => F,
+                    arity => A,
+                    cause => parse,
+                    line => Ln
+                }}
             ])
     end.
 
@@ -255,9 +266,9 @@ asserts([{left, {N, L}}, {more, {Ws, Dots, M}} | T], HI, {Ln, NLn}, Acc) ->
 asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
     case check_left_index(N, I) of
         ok when T =:= [] ->
-            {ok, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]};
+            {ok, [{{parse(L, Ln), Ln}, {parse(R, Ln+1), NLn+1}} | Acc]};
         ok ->
-            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]);
+            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L, Ln), Ln}, {parse(R, NLn+1), NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
             Received = iolist_to_binary([case N of undefined -> <<>>; _ -> N end, "> ", H]),
@@ -281,10 +292,15 @@ scan(Expr) when is_binary(Expr) ->
 scan(Expr) ->
     Expr.
 
-parse(Tokens) ->
-    DotTokens = lists:flatten([scan(Tokens), scan(<<".">>)]),
-    {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
-    Exprs.
+parse(Tokens, Ln) ->
+    try
+        DotTokens = lists:flatten([scan(Tokens), scan(<<".">>)]),
+        {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
+        Exprs
+    catch
+        _:_ ->
+            throw({error, {parse, Tokens, Ln}})
+    end.
 
 check_more_format(undefined, _Ws) ->
     ok;
