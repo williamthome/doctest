@@ -115,23 +115,59 @@ There are two ways to test your documentation:
   ```
 
 - Or via parse transformation by using the `doctest_transform` module included
-in the `doctest/include/doctest.hrl` and then running `rebar3 eunit`, e.g.:
+  in the `doctest/include/doctest.hrl` and then running `rebar3 eunit`, e.g.:
 
   ```erlang
   -ifdef(TEST).
-  % The doctest header exports all functions and sets `doctest_transform`
-  % as a parse_transform:
+  % The doctest header sets `doctest_transform` as a parse_transform:
   -include_lib("doctest/include/doctest.hrl").
   -doctest #{
       % Options (please see the options below)
   }.
   -endif.
-
-  % And then running:
-  % $ rebar3 eunit
   ```
 
-### Options
+### Common Test (CT) usage
+
+Example how to use `doctest` via Common Test:
+
+```erlang
+-module(mymodule_SUITE).
+-behaviour(ct_suite).
+-export([all/0, doctest/1]).
+
+all() -> [doctest].
+
+doctest(Config) when is_list(Config) ->
+    ok = doctest:module(mymodule). % Use `doctest:module/2` to pass options
+```
+
+### Eunit usage
+
+Example how to use `doctest` via Eunit:
+
+````erlang
+-module(mymodule).
+-export([sum/2]).
+
+-ifdef(TEST).
+-include("doctest.hrl").
+% Use the -doctest attribute to pass options
+-endif.
+
+% The `sum/2` will be tested by default because it contains a valid Markdown
+% code block. Multiple Markdown code blocks can be defined.
+-doc """
+```
+> mymodule:sum(1, 1).
+2
+```
+""".
+sum(A, B) ->
+    A + B.
+````
+
+## Options
 
 The options are passed via a map:
 
