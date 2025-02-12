@@ -74,7 +74,7 @@ parse_opts(Opts) when is_map(Opts) ->
         eunit_opts => maps:get(eunit_opts, Opts,
             application:get_env(doctest, eunit_opts, rebar3_config)),
         extractors => maps:get(extractors, Opts,
-            application:get_env(doctest, extractors, []))
+            application:get_env(doctest, extractors, doctest_extract:default_extractors()))
     }.
 
 %%%=====================================================================

@@ -92,7 +92,7 @@ code_blocks(Doc, RE) when is_binary(Doc) ->
 
 -if(?IS_DOC_ATTRS_SUPPORTED).
 default_extractors() ->
-    [doctest_extract_attr, doctest_extract_tag].
+    [doctest_extract_attr].
 -else.
 default_extractors() ->
     [doctest_extract_tag].
