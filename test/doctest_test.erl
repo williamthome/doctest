@@ -18,4 +18,6 @@
 -include_lib("eunit/include/eunit.hrl").
 
 module_test() ->
-    ?assertEqual(ok, doctest:module(doctest_test_module)).
+    ?assertEqual(ok, doctest:module(doctest_test_module, #{
+        extractors => [doctest_extract_attr, doctest_extract_tag]
+    })).

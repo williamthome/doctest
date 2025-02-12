@@ -20,7 +20,7 @@
 -module(doctest).
 
 % API functions
--export([module/1, module/2, forms/2]).
+-export([module/1, module/2, forms/2, parse_opts/1]).
 
 -export_type([options/0, result/0]).
 
@@ -60,18 +60,9 @@ module(Mod, Opts) ->
 forms(Forms, Opts) ->
     run(forms_tests, Forms, Opts).
 
-%%%=====================================================================
-%%% Internal functions
-%%%=====================================================================
-
-run(Fun, Payload, Opts) ->
-    do_run(parse_opts(Opts), Fun, Payload).
-
-do_run(#{enabled := true, eunit_opts := EunitOpts} = Opts, Fun, Payload) ->
-    doctest_eunit:test(doctest_extract:Fun(Payload, Opts), EunitOpts);
-do_run(#{enabled := false}, _, _) ->
-    ok.
-
+-spec parse_opts(Opts0) -> Opts1 when
+      Opts0 :: options(),
+      Opts1 :: options().
 parse_opts(Opts) when is_map(Opts) ->
     #{
         enabled => maps:get(enabled, Opts,
@@ -83,5 +74,17 @@ parse_opts(Opts) when is_map(Opts) ->
         eunit_opts => maps:get(eunit_opts, Opts,
             application:get_env(doctest, eunit_opts, rebar3_config)),
         extractors => maps:get(extractors, Opts,
-            application:get_env(doctest, extractors, []))
+            application:get_env(doctest, extractors, doctest_extract:default_extractors()))
     }.
+
+%%%=====================================================================
+%%% Internal functions
+%%%=====================================================================
+
+run(Fun, Payload, Opts) ->
+    do_run(parse_opts(Opts), Fun, Payload).
+
+do_run(#{enabled := true, eunit_opts := EunitOpts} = Opts, Fun, Payload) ->
+    doctest_eunit:test(doctest_extract:Fun(Payload, Opts), EunitOpts);
+do_run(#{enabled := false}, _, _) ->
+    ok.

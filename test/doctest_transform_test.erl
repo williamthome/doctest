@@ -24,7 +24,10 @@
 
 -ifdef(TEST).
 -include("doctest.hrl").
--doctest [skip_match/1, sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0].
+-doctest #{
+    extractors => [doctest_extract_attr, doctest_extract_tag],
+    doc => [skip_match/1, sum/2, mult/2, nodoc/0, nocodeblock/0, notestcodeblock/0]
+}.
 -endif.
 
 -include("src/doctest_check.hrl").
