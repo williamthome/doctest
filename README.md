@@ -151,7 +151,7 @@ Example how to use `doctest` via Eunit:
 -export([sum/2]).
 
 -ifdef(TEST).
--include("doctest.hrl").
+-include_lib("doctest/include/doctest.hrl").
 % Use the -doctest attribute to pass options
 -endif.
 
