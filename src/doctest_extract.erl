@@ -164,12 +164,15 @@ should_test_moduledoc(Opts) when not is_map_key(moduledoc, Opts) ->
     true.
 
 should_test_doc({M, F, A}, Opts) ->
-    case erlang:function_exported(M, F, A) of
+    case is_module_loaded(M) andalso erlang:function_exported(M, F, A) of
         true ->
             do_should_test_doc(Opts, {F, A});
         false ->
             false
     end.
+
+is_module_loaded(Mod) ->
+    {module, Mod} =:= code:ensure_loaded(Mod).
 
 do_should_test_doc(#{doc := true}, _Fun) ->
     true;
