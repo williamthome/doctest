@@ -68,7 +68,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, {format, Info}}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, Info#{
                     attribute => moduledoc,
                     module => Mod,
@@ -76,13 +76,23 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, eval, {Expr, Ln, Bindings, Reason}}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
                     expression => Expr,
                     bindings => Bindings,
                     cause => Reason,
+                    line => Ln
+                }}
+            ]);
+        {error, {parse, Expr, Ln, ErrInfo}} ->
+            error({doctest, eval, {Expr, Ln, ErrInfo}}, [Mod, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    attribute => moduledoc,
+                    module => Mod,
+                    expression => Expr,
+                    cause => parse,
                     line => Ln
                 }}
             ])
@@ -119,7 +129,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {format, Info}}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, Info#{
                     attribute => doc,
                     module => M,
@@ -129,7 +139,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {eval, Expr, Ln, Bindings, Reason}}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
@@ -141,13 +151,14 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     line => Ln
                 }}
             ]);
-        {error, {parse, _Tokens, Ln}} ->
-            error({doctest, parse}, [{M, F, A}, AttrLn, CodeBlocks], [
+        {error, {parse, Expr, Ln, ErrInfo}} ->
+            error({doctest, parse, Expr, ErrInfo}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
                     function => F,
                     arity => A,
+                    expression => Expr,
                     cause => parse,
                     line => Ln
                 }}
