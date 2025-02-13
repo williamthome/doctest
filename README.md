@@ -20,9 +20,24 @@ It is compatible with the [doctests syntax introduced in OTP-28](https://github.
         {deps, [{doctest, "~> 0.10"}]}
     ]}
 ]}.
-% 'doctest_eunit_report' is required to pretty print and correctly displays the failed tests.
+% 'doctest_eunit_report' is required to pretty print and correctly displays the failed Eunit tests.
 {eunit_opts, [no_tty, {report, {doctest_eunit_report, []}}]}.
 ```
+
+> [!IMPORTANT]
+>
+> `doctest` won't run any test when `cover` is enabled, for example:
+>
+> ```erlang
+> {profiles, [
+>     {test, [
+>         {cover_enabled, true},
+>         % ...
+>     ]}
+> ]}.
+> ```
+>
+> There is an open [PR](https://github.com/erlang/otp/pull/9433) to fix this bug in the OTP repository.
 
 ## Overview
 
@@ -141,6 +156,11 @@ all() -> [doctest].
 doctest(Config) when is_list(Config) ->
     ok = doctest:module(mymodule). % Use `doctest:module/2` to pass options
 ```
+
+> [!IMPORTANT]
+>
+> `doctest` produces no output in the terminal when testing via Common Test.
+> It just returns `ok` or `error`, so running doc tests via `Eunit` is recommended.
 
 ### Eunit usage
 
