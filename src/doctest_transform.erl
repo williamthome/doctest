@@ -48,7 +48,8 @@ doctest_export() ->
     merl:quote("-export([doctest_test/0]).").
 
 doctest_fun(Forms) ->
-    erl_syntax:revert(merl:qquote([
+    erl_syntax:revert_forms(merl:qquote([
+        "-spec doctest_test() -> boolean().",
         "doctest_test() ->",
         "    ok =:= doctest:module('@module', _@options)."
     ], [
