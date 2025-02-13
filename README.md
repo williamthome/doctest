@@ -396,7 +396,13 @@ tests results correctly. Set it in the EUnit options of the project options, e.g
 
 ```erlang
 % rebar3.config
-{eunit_opts, [no_tty, {report, {doctest_eunit_report, []}}]}.
+{eunit_opts, [
+    no_tty,
+    {report, {doctest_eunit_report, [
+        % Default options
+        {print_depth, 15}
+    ]}}
+]}.
 ```
 
 An example of the `doctest_eunit_report` output:
