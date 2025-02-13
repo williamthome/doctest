@@ -28,7 +28,7 @@
 test(Tests) ->
     test(Tests, rebar3_config).
 
-test({_Desc, []}, _Opts) ->
+test(ignore, _Opts) ->
     ok;
 test(Tests, rebar3_config) ->
     eunit:test({inparallel, Tests}, rebar3_config_opts());
@@ -68,7 +68,7 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, {format, Info}}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, Info#{
                     attribute => moduledoc,
                     module => Mod,
@@ -76,13 +76,23 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, eval, {Expr, Ln, Bindings, Reason}}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
                     expression => Expr,
                     bindings => Bindings,
                     cause => Reason,
+                    line => Ln
+                }}
+            ]);
+        {error, {parse, Expr, Ln, ErrInfo}} ->
+            error({doctest, eval, {Expr, Ln, ErrInfo}}, [Mod, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    attribute => moduledoc,
+                    module => Mod,
+                    expression => Expr,
+                    cause => parse,
                     line => Ln
                 }}
             ])
@@ -119,7 +129,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, Info}} ->
-            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {format, Info}}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, Info#{
                     attribute => doc,
                     module => M,
@@ -129,7 +139,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {eval, Expr, Ln, Bindings, Reason}}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
@@ -140,13 +150,29 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     cause => Reason,
                     line => Ln
                 }}
+            ]);
+        {error, {parse, Expr, Ln, ErrInfo}} ->
+            error({doctest, parse, Expr, ErrInfo}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, #{
+                    attribute => doc,
+                    module => M,
+                    function => F,
+                    arity => A,
+                    expression => Expr,
+                    cause => parse,
+                    line => Ln
+                }}
             ])
     end.
 
 test_title(Mod, Ln) ->
     Filename = proplists:get_value(source, Mod:module_info(compile), code:which(Mod)),
-    [[], Rel] = string:split(Filename, filename:absname("./")),
-    iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln])).
+    case string:split(Filename, filename:absname("./")) of
+        [[], Rel] ->
+            iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln]));
+        Rel ->
+            iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln]))
+    end.
 
 %%%=====================================================================
 %%% Internal functions
@@ -222,27 +248,51 @@ split_lines(CodeBlock) ->
     binary:split(CodeBlock, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]).
 
 chunks(Parts) ->
-    Opts = [{capture, all_but_first, binary}],
-    lists:map(fun(Part) ->
-        case re:run(Part, <<"^([1-9][0-9]*)?>\\s(.*?)\\.*$">>, Opts) of
-            {match, [<<>>, Left]} ->
-                {left, {undefined, Left}};
-            {match, [N, Left]} ->
-                {left, {N, Left}};
-            nomatch ->
-                case re:run(Part, <<"^(\\s*)(\\.*)\\s(.*?)\\.*$">>, Opts) of
-                    {match, [Ws, Dots, More]} ->
-                        {more, {Ws, Dots, More}};
-                    nomatch ->
-                        {right, Part}
-                end
-        end
-    end, Parts).
+    {ok, ReExpr} = re:compile(<<"^([1-9][0-9]*)?>\\s(.*?)\\.*$">>),
+    {ok, ReMoreExpr} = re:compile(<<"^(\\s*)(\\.*)\\s(.*?)\\.*$">>),
+    do_chunks(Parts, ReExpr, ReMoreExpr).
+
+do_chunks([], _ReExpr, _ReMoreExpr) ->
+    [];
+do_chunks([H | T], ReExpr, ReMoreExpr) ->
+    case do_chunk(H, ReExpr, ReMoreExpr) of
+        {right, R0} ->
+            {R, T1} = find_right_side_end(T, ReExpr, R0),
+            [{right, R} | do_chunks(T1, ReExpr, ReMoreExpr)];
+        Chunk ->
+            [Chunk | do_chunks(T, ReExpr, ReMoreExpr)]
+    end.
+
+do_chunk(Part, ReExpr, ReMoreExpr) ->
+    ReOpts = [{capture, all_but_first, binary}],
+    case re:run(Part, ReExpr, ReOpts) of
+        {match, [<<>>, Left]} ->
+            {left, {undefined, Left}};
+        {match, [N, Left]} ->
+            {left, {N, Left}};
+        nomatch ->
+            case re:run(Part, ReMoreExpr, ReOpts) of
+                {match, [Ws, Dots, More]} ->
+                    {more, {Ws, Dots, More}};
+                nomatch ->
+                    {right, Part}
+            end
+    end.
+
+find_right_side_end([], _ReExpr, Acc) ->
+    {Acc, []};
+find_right_side_end([H | T] = All, ReExpr, Acc) ->
+    case re:run(H, ReExpr, [{capture, none}]) of
+        match ->
+            {Acc, All};
+        nomatch ->
+            find_right_side_end(T, ReExpr, <<Acc/binary, $\n, H/binary>>)
+    end.
 
 asserts([{left, {N, L}}, {more, {Ws, Dots, M}} | T], HI, {Ln, NLn}, Acc) ->
     case check_more_format(N, Ws) of
         ok ->
-            asserts([{left, {N, [scan(L), scan(M)]}} | T], HI, {Ln, NLn+1}, Acc);
+            asserts([{left, {N, <<L/binary, $\n, M/binary>>}} | T], HI, {Ln, NLn+1}, Acc);
         {error, {EWs, RWs}} ->
             Expected = iolist_to_binary([lists:duplicate(EWs, "\s"), Dots, "> ", M]),
             Received = iolist_to_binary([lists:duplicate(RWs, "\s"), Dots, "> ", M]),
@@ -255,9 +305,9 @@ asserts([{left, {N, L}}, {more, {Ws, Dots, M}} | T], HI, {Ln, NLn}, Acc) ->
 asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) ->
     case check_left_index(N, I) of
         ok when T =:= [] ->
-            {ok, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]};
+            {ok, [{{parse(L, Ln), Ln}, {parse(R, NLn+1), NLn+1}} | Acc]};
         ok ->
-            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L), Ln}, {parse(R), NLn+1}} | Acc]);
+            asserts(T, {hd(T), I+1}, {NLn+2, NLn+2}, [{{parse(L, Ln), Ln}, {parse(R, NLn+1), NLn+1}} | Acc]);
         error ->
             Expected = iolist_to_binary([integer_to_binary(I), "> ", H]),
             Received = iolist_to_binary([case N of undefined -> <<>>; _ -> N end, "> ", H]),
@@ -268,23 +318,22 @@ asserts([{left, {N, L}}, {right, R} | T], {{left, {_, H}}, I}, {Ln, NLn}, Acc) -
             }}}
     end;
 asserts([{left, _} = Left, {left, _} = Next | T], HI, {Ln, NLn}, Acc) ->
-    asserts([Left, {right, <<"_">>}, Next | T], HI, {Ln, NLn}, Acc);
+    asserts([Left, {right, <<"_">>}, Next | T], HI, {Ln-1, NLn-1}, Acc);
 % Code block is not a test, e.g:
 % foo() ->
 %     bar.
 asserts(_, _, _, _) ->
     {ok, []}.
 
-scan(Expr) when is_binary(Expr) ->
-    {ok, T, _} = erl_scan:string(binary_to_list(Expr)),
-    T;
-scan(Expr) ->
-    Expr.
-
-parse(Tokens) ->
-    DotTokens = lists:flatten([scan(Tokens), scan(<<".">>)]),
-    {ok, Exprs} = erl_parse:parse_exprs(DotTokens),
-    Exprs.
+parse(Expr, Ln) ->
+    try
+        {ok, Tokens, _} = erl_scan:string(binary_to_list(<<Expr/binary, $.>>)),
+        {ok, Ast} = erl_parse:parse_exprs(Tokens),
+        Ast
+    catch
+        error:ErrInfo ->
+            throw({error, {parse, Expr, Ln, ErrInfo}})
+    end.
 
 check_more_format(undefined, _Ws) ->
     ok;
