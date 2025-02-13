@@ -156,8 +156,12 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
 
 test_title(Mod, Ln) ->
     Filename = proplists:get_value(source, Mod:module_info(compile), code:which(Mod)),
-    [[], Rel] = string:split(Filename, filename:absname("./")),
-    iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln])).
+    case string:split(Filename, filename:absname("./")) of
+        [[], Rel] ->
+            iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln]));
+        Rel ->
+            iolist_to_binary(io_lib:format(".~s:~p", [Rel, Ln]))
+    end.
 
 %%%=====================================================================
 %%% Internal functions
