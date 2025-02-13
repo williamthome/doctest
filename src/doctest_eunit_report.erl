@@ -28,7 +28,7 @@
         , terminate/2
         ]).
 
--record(state, {groups}).
+-record(state, {print_depth, groups}).
 
 -ifndef(EUNIT_DEBUG_VAL_DEPTH).
 -define(EUNIT_DEBUG_VAL_DEPTH, 15). % Default eunit.hrl value.
@@ -48,8 +48,11 @@ start(Options) ->
 %%% eunit_listener callbacks
 %%%=====================================================================
 
-init(Options) when is_list(Options) ->
-    #state{groups = orddict:new()}.
+init(Opts) when is_list(Opts) ->
+    #state{
+       print_depth = proplists:get_value(print_depth, Opts, ?EUNIT_DEBUG_VAL_DEPTH),
+       groups = orddict:new()
+    }.
 
 handle_begin(group, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
@@ -105,13 +108,13 @@ handle_cancel(test, Data, #state{groups = Groups} = State) ->
         end
     end, Groups)}.
 
-terminate({ok, Data}, #state{groups = Groups} = _State) ->
+terminate({ok, Data}, #state{groups = Groups} = State) ->
     print_header(),
-    {ok, Time} = print_groups(Groups),
+    {ok, Time} = print_groups(Groups, State),
     print_footer(Data, Time),
     {ok, Data};
 terminate({error, Reason}, State) ->
-    print_error(error, Reason, State),
+    print_error(error, Reason, [], State),
     {error, Reason}.
 
 test_info(#{desc := <<"doctest ", Rest/binary>>} = D) ->
@@ -163,8 +166,8 @@ fun_line([], _F, _A) ->
 print_header() ->
     ok.
 
-print_groups(Groups) ->
-    do_print_groups(enumerate(orddict:to_list(Groups)), 0).
+print_groups(Groups, State) ->
+    do_print_groups(enumerate(orddict:to_list(Groups)), 0, State).
 
 print_footer(Data, Time) ->
     Order = [fail, pass, skip, cancel],
@@ -196,31 +199,31 @@ print_footer(Data, Time) ->
             ])
     end.
 
-do_print_groups([{_I, {_Id, [_Data, []]}} | T], Time) ->
-    do_print_groups(T, Time);
-do_print_groups([{_I, {_Id, [Data, Tests]}} | T], Time) ->
-    print_test(enumerate(orddict:to_list(Tests))),
+do_print_groups([{_I, {_Id, [_Data, []]}} | T], Time, State) ->
+    do_print_groups(T, Time, State);
+do_print_groups([{_I, {_Id, [Data, Tests]}} | T], Time, State) ->
+    print_test(enumerate(orddict:to_list(Tests)), State),
     {time, GroupTime} = proplists:lookup(time, Data),
-    do_print_groups(T, Time + GroupTime);
-do_print_groups([], Time) ->
+    do_print_groups(T, Time + GroupTime, State);
+do_print_groups([], Time, _State) ->
     {ok, Time}.
 
-print_test([{_I, {_Id, [#{status := ok} = Test]}} | T]) ->
-    print_test_pass(Test),
-    print_output(Test),
-    print_test(T);
-print_test([{_I, {_Id, [#{status := {skipped, _Reason}} = Test]}} | T]) ->
-    print_test_skip(Test),
-    print_output(Test),
-    print_test(T);
-print_test([{_I, {_Id, [#{status := {error, _Reason}} = Test]}} | T]) ->
-    print_test_fail(Test),
-    print_output(Test),
-    print_test(T);
-print_test([]) ->
+print_test([{_I, {_Id, [#{status := ok} = Test]}} | T], State) ->
+    print_test_pass(Test, State),
+    print_output(Test, State),
+    print_test(T, State);
+print_test([{_I, {_Id, [#{status := {skipped, _Reason}} = Test]}} | T], State) ->
+    print_test_skip(Test, State),
+    print_output(Test, State),
+    print_test(T, State);
+print_test([{_I, {_Id, [#{status := {error, _Reason}} = Test]}} | T], State) ->
+    print_test_fail(Test, State),
+    print_output(Test, State),
+    print_test(T, State);
+print_test([], _State) ->
     ok.
 
-print_test_pass(#{tag := Tag, title := Title}) ->
+print_test_pass(#{tag := Tag, title := Title}, _State) ->
     doctest_term:write([
         {<<" PASS ">>, [bold, {fg, white}, {bg, green}]},
         <<"\s">>,
@@ -229,7 +232,7 @@ print_test_pass(#{tag := Tag, title := Title}) ->
         format_tag(Tag)
     ]).
 
-print_test_skip(#{tag := Tag, title := Title}) ->
+print_test_skip(#{tag := Tag, title := Title}, _State) ->
     doctest_term:write([
         {<<" SKIP ">>, [bold, {fg, white}, {bg, yellow}]},
         <<"\s">>,
@@ -238,7 +241,7 @@ print_test_skip(#{tag := Tag, title := Title}) ->
         format_tag(Tag)
     ]).
 
-print_test_fail(#{tag := Tag, title := Title, status := {error, Reason}} = Test) ->
+print_test_fail(#{tag := Tag, title := Title, status := {error, Reason}} = Test, State) ->
     doctest_term:write([
         {<<" FAIL ">>, [bold, {fg, white}, {bg, red}]},
         <<"\s">>,
@@ -246,7 +249,7 @@ print_test_fail(#{tag := Tag, title := Title, status := {error, Reason}} = Test)
         <<"\s">>,
         format_tag(Tag),
         <<"\n\n">>
-    | format_error(Reason, Test)]).
+    | format_error(Reason, Test, State)]).
 
 format_tag(Tag) ->
     {Tag, {fg, cyan}}.
@@ -261,7 +264,7 @@ format_title(Title) ->
         {{fmt, ".erl:~s", [Ln]}, {fg, bright_black}}
     ].
 
-print_output(#{output := Out}) ->
+print_output(#{output := Out}, _State) ->
     case iolist_to_binary(Out) of
         <<>> ->
             ok;
@@ -276,29 +279,29 @@ print_output(#{output := Out}) ->
             ])
     end.
 
-format_error({error, {doctest, Reason}, Stacktrace}, _Test) ->
+format_error({error, {doctest, Reason}, Stacktrace}, _Test, _State) ->
     erlang:raise(error, {doctest, Reason}, Stacktrace);
-format_error({error, {assertEqual, Info}, Stacktrace}, Test) ->
+format_error({error, {assertEqual, Info}, Stacktrace}, Test, State) ->
     case proplists:lookup(doctest, Info) of
         {doctest, DocTest} ->
-            print_doctest(DocTest, {assertEqual, Info}, Test, Stacktrace);
+            print_doctest(DocTest, {assertEqual, Info}, Test, Stacktrace, State);
         none ->
-            print_test({assertEqual, Info}, Test, Stacktrace)
+            print_test({assertEqual, Info}, Test, Stacktrace, State)
     end;
-format_error({error, {Reason, Info}, Stacktrace}, Test) ->
+format_error({error, {Reason, Info}, Stacktrace}, Test, State) ->
     case is_list(Info) andalso (
         proplists:is_defined(expected, Info) orelse
         proplists:is_defined(pattern, Info)
     ) of
         true ->
-            print_test({Reason, Info}, Test, Stacktrace);
+            print_test({Reason, Info}, Test, Stacktrace, State);
         false ->
-            print_error(error, {Reason, Info}, Stacktrace)
+            print_error(error, {Reason, Info}, Stacktrace, State)
     end;
-format_error({Class, Reason, Stacktrace}, _Test) ->
-    print_error(Class, Reason, Stacktrace).
+format_error({Class, Reason, Stacktrace}, _Test, State) ->
+    print_error(Class, Reason, Stacktrace, State).
 
-print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test, _Stack) ->
+print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test, _Stack, State) ->
     Left = proplists:get_value(expected, Info),
     Right = proplists:get_value(value, Info),
     Filename = maps:get(file, Test),
@@ -311,7 +314,7 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
         <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
         <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, "~tp", [Left]}, {fg, green}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, "~tP", [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, "~tP", [Right, State#state.print_depth]}, {fg, red}}, <<"\n">>,
         <<"\n">>,
         format_pre_code(Test, Pd),
         <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
@@ -321,7 +324,7 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
         <<"\n">>
     ].
 
-print_test({Reason, Info}, Test, _Stacktrace) ->
+print_test({Reason, Info}, Test, _Stacktrace, State) ->
     Left = proplists:get_value(expected, Info,
                 proplists:get_value(pattern, Info)),
     Right = proplists:get_value(value, Info,
@@ -343,7 +346,7 @@ print_test({Reason, Info}, Test, _Stacktrace) ->
         <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, Reason}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
         <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, ?EUNIT_DEBUG_VAL_DEPTH]}, {fg, red}}, <<"\n">>,
+        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, State#state.print_depth]}, {fg, red}}, <<"\n">>,
         <<"\n">>,
         format_pre_code(Test, Pd),
         <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
@@ -353,7 +356,7 @@ print_test({Reason, Info}, Test, _Stacktrace) ->
         <<"\n">>
     ].
 
-print_error(Class, Reason, Stacktrace) ->
+print_error(Class, Reason, Stacktrace, _State) ->
     [
         <<"\s\s\s❌\s"/utf8>>, {{to_bin, {Class, Reason}}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
