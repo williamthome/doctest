@@ -28,7 +28,7 @@
 test(Tests) ->
     test(Tests, rebar3_config).
 
-test({_Desc, []}, _Opts) ->
+test(ignore, _Opts) ->
     ok;
 test(Tests, rebar3_config) ->
     eunit:test({inparallel, Tests}, rebar3_config_opts());

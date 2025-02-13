@@ -67,13 +67,20 @@ module_tests(Mod, Opts) when is_atom(Mod) ->
     end.
 
 module_forms(Mod) ->
-    case is_cover_mod_loaded() andalso cover:is_compiled(Mod) of
-        {file, Filename} ->
-            do_module_forms(Filename);
-        false ->
-            do_module_forms(code:which(Mod))
+    case code:which(Mod) of
+        cover_compiled ->
+            % There is a bug with the `code:get_doc` and it's not possible to return
+            % the forms for now. After the fix, is possible to get the forms with:
+            % > {file, Filename} = cover:is_compiled(Mod),
+            % > do_module_forms(Filename);
+            % See https://github.com/erlang/otp/pull/9433
+            {ok, []};
+        Filename ->
+            do_module_forms(Filename)
     end.
 
+forms_tests([], _Opts) ->
+    ignore;
 forms_tests(Forms, Opts) when is_map(Opts) ->
     Mod = doctest_forms:module(Forms),
     Extractors = extractors(Opts),
@@ -101,12 +108,6 @@ default_extractors() ->
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
-
-is_cover_mod_loaded() ->
-    Apps = application:loaded_applications(),
-    lists:member(fun({Mod, _Desc, _Vsn}) ->
-        Mod =:= cover
-    end, Apps).
 
 do_module_forms(Filename) ->
     case beam_lib:chunks(Filename, [abstract_code]) of
