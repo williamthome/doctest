@@ -78,9 +78,9 @@ handle_end(group, Data, State) ->
 handle_end(test, Data, State) ->
     {id, Id} = proplists:lookup(id, Data),
     case proplists:get_value(status, Data) of
-        {error, Error} ->
-            format_error(Error, maps:from_list(Data), State);
-        _ ->
+        {error, {error, {doctest, Reason}, Stacktrace}} ->
+            erlang:raise(error, {doctest, Reason}, Stacktrace);
+        _Status ->
             GroupId = lists:droplast(Id),
             State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
                 case orddict:is_key(Id, Tests) of
