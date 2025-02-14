@@ -67,16 +67,16 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
     ) of
         {ok, Tests} ->
             Tests;
-        {error, {format, Info}} ->
-            error({doctest, {format, Info}}, [Mod, AttrLn, CodeBlocks], [
-                {error_info, Info#{
+        {error, {format, ErrInfo}} ->
+            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+                {error_info, ErrInfo#{
                     attribute => moduledoc,
                     module => Mod,
                     cause => format
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, eval, {Expr, Ln, Bindings, Reason}}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, eval, {Expr, Ln, Bindings}}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
@@ -86,13 +86,13 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
                     line => Ln
                 }}
             ]);
-        {error, {parse, Expr, Ln, ErrInfo}} ->
-            error({doctest, eval, {Expr, Ln, ErrInfo}}, [Mod, AttrLn, CodeBlocks], [
+        {error, {parse, Expr, Ln, Reason}} ->
+            error({doctest, eval, Expr, Ln}, [Mod, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
                     expression => Expr,
-                    cause => parse,
+                    cause => Reason,
                     line => Ln
                 }}
             ])
@@ -128,9 +128,9 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
     ) of
         {ok, Tests} ->
             Tests;
-        {error, {format, Info}} ->
-            error({doctest, {format, Info}}, [{M, F, A}, AttrLn, CodeBlocks], [
-                {error_info, Info#{
+        {error, {format, ErrInfo}} ->
+            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
+                {error_info, ErrInfo#{
                     attribute => doc,
                     module => M,
                     function => F,
@@ -139,7 +139,7 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, {eval, Expr, Ln, Bindings, Reason}}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {eval, Expr, Ln, Bindings}}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
@@ -151,15 +151,15 @@ doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
                     line => Ln
                 }}
             ]);
-        {error, {parse, Expr, Ln, ErrInfo}} ->
-            error({doctest, parse, Expr, ErrInfo}, [{M, F, A}, AttrLn, CodeBlocks], [
+        {error, {parse, Expr, Ln, Reason}} ->
+            error({doctest, parse, Expr}, [{M, F, A}, AttrLn, CodeBlocks], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
                     function => F,
                     arity => A,
                     expression => Expr,
-                    cause => parse,
+                    cause => Reason,
                     line => Ln
                 }}
             ])
@@ -229,8 +229,8 @@ eval(Exprs, Ln, Bindings, LocalFunctionHandler) ->
             erl_eval:exprs(Exprs, Bindings, LocalFunctionHandler),
         {Value, NewBindings}
     catch
-        _Class:Reason:_Stacktrace ->
-            throw({error, {eval, pp(Exprs), Ln, Bindings, Reason}})
+        _Class:Reason:Stacktrace ->
+            throw({error, {eval, pp(Exprs), Ln, Bindings, {Reason, Stacktrace}}})
     end.
 
 pp(Exprs) ->
@@ -331,8 +331,8 @@ parse(Expr, Ln) ->
         {ok, Ast} = erl_parse:parse_exprs(Tokens),
         Ast
     catch
-        error:ErrInfo ->
-            throw({error, {parse, Expr, Ln, ErrInfo}})
+        error:ErrInfo:Stacktrace ->
+            throw({error, {parse, Expr, Ln, {ErrInfo, Stacktrace}}})
     end.
 
 check_more_format(undefined, _Ws) ->
