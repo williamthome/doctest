@@ -70,24 +70,29 @@ handle_begin(test, Data, #state{groups = Groups} = State) ->
         end
     end, Groups)}.
 
-handle_end(group, Data, #state{groups = Groups} = State) ->
+handle_end(group, Data, State) ->
     {id, Id} = proplists:lookup(id, Data),
     State#state{groups = orddict:update(Id, fun([_Group, Tests]) ->
         [Data, Tests]
-    end, Groups)};
-handle_end(test, Data, #state{groups = Groups} = State) ->
+    end, State#state.groups)};
+handle_end(test, Data, State) ->
     {id, Id} = proplists:lookup(id, Data),
-    GroupId = lists:droplast(Id),
-    State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-        case orddict:is_key(Id, Tests) of
-            true ->
-                [Group, orddict:update(Id, fun([Test]) ->
-                    [maps:merge(Test, maps:from_list(Data))]
-                end, Tests)];
-            false ->
-                [Group, Tests]
-        end
-    end, Groups)}.
+    case proplists:get_value(status, Data) of
+        {error, Error} ->
+            format_error(Error, maps:from_list(Data), State);
+        _ ->
+            GroupId = lists:droplast(Id),
+            State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
+                case orddict:is_key(Id, Tests) of
+                    true ->
+                        [Group, orddict:update(Id, fun([Test]) ->
+                            [maps:merge(Test, maps:from_list(Data))]
+                        end, Tests)];
+                    false ->
+                        [Group, Tests]
+                end
+            end, State#state.groups)}
+    end.
 
 handle_cancel(group, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
