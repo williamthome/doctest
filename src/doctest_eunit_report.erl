@@ -277,7 +277,7 @@ print_output(#{output := Out}, _State) ->
             Pd = <<"\s\s\s">>,
             Lns = binary:split(Comment, [<<"\r">>, <<"\n">>, <<"\r\n">>], [global]),
             doctest_term:write([
-                Pd, {<<"Output:\n">>, bold},
+                Pd, {<<"Output:\n\n">>, bold},
                 lists:join(<<"\n">>, lists:map(fun(Ln) ->
                     [Pd, {Ln, {fg, bright_black}}]
                 end, Lns))
@@ -316,17 +316,19 @@ print_doctest(#{ln_range := {FromLn, ToLn}} = _DocTest, {ErrReason, Info}, Test,
         [<<"\s">>, {{to_bin, RLn}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, RExpr, <<"\n">>]
     end, range(FromLn, ToLn, Lns)),
     [
-        <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
-        <<"\n">>,
-        <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, "~tp", [Left]}, {fg, green}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, "~tP", [Right, State#state.print_depth]}, {fg, red}}, <<"\n">>,
+        <<"\s">>, <<"❌\s"/utf8>>, {{to_bin, ErrReason}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
         format_pre_code(Test, Pd),
         <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
         Range,
         <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}},
-        <<"\n">>
+        <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [FromLn]}, {fg, blue}}, <<"\n">>,
+        <<"\n">>,
+        <<"Expected:\n">>,
+        {{fmt, "~tp", [Left]}, {fg, green}}, <<"\n">>,
+        <<"\n">>,
+        <<"Received:\n">>,
+        {{fmt, "~tP", [Right, State#state.print_depth]}, {fg, red}}, <<"\n">>
     ].
 
 print_test({Reason, Info}, Test, _Stacktrace, State) ->
@@ -348,17 +350,19 @@ print_test({Reason, Info}, Test, _Stacktrace, State) ->
     LnExpr = lists:nth(Ln, Lns),
     Pd = iolist_to_binary(lists:duplicate(byte_size(integer_to_binary(Ln)), <<"\s">>)),
     [
-        <<"\s">>, Pd, <<"\s❌\s"/utf8>>, {{to_bin, Reason}, {fg, bright_black}}, <<"\n">>,
-        <<"\n">>,
-        <<"\s">>, Pd, <<"\sExpected: ">>, {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\sReceived: ">>, {{fmt, RightFmt, [Right, State#state.print_depth]}, {fg, red}}, <<"\n">>,
+        <<"\s">>, <<"❌\s"/utf8>>, {{to_bin, Reason}, {fg, bright_black}}, <<"\n">>,
         <<"\n">>,
         format_pre_code(Test, Pd),
         <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
         <<"\s">>, {{to_bin, Ln}, {fg, red}}, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\s">>, LnExpr, <<"\n">>,
         <<"\s">>, Pd, <<"\s">>, {<<"│"/utf8>>, {fg, bright_black}}, <<"\n">>,
-        <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}},
-        <<"\n">>
+        <<"\s">>, Pd, <<"\s">>, {<<"└── at "/utf8>>, {fg, bright_black}}, {Filename, {fg, blue}}, {{fmt, ":~p", [Ln]}, {fg, blue}}, <<"\n">>,
+        <<"\n">>,
+        <<"Expected:\n">>,
+        {{fmt, LeftFmt, [Left]}, {fg, green}}, <<"\n">>,
+        <<"\n">>,
+        <<"Received:\n">>,
+        {{fmt, RightFmt, [Right, State#state.print_depth]}, {fg, red}}, <<"\n">>
     ].
 
 print_error(Class, Reason, Stacktrace, _State) ->
