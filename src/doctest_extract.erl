@@ -26,10 +26,8 @@
              , location/0
              ]).
 
--callback chunks(Args) -> Chunks when
-          Args :: {Mod, Forms},
+-callback chunks(Mod) -> Chunks when
           Mod :: module(),
-          Forms :: [erl_syntax:syntaxTree()],
           Chunks :: [chunk()].
 
 -callback code_blocks(Doc) -> CodeBlocks when

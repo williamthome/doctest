@@ -126,6 +126,7 @@ foo(Foo) -> Foo.
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
+% The EUnit header will automatically export this function because it ends with "_test"
 doctest_test() ->
     doctest:module(?MODULE, #{
         % Default options:
