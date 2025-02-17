@@ -19,7 +19,7 @@
 -export([test/1, test/2]).
 
 % Support functions
--export([moduledoc_tests/4, doc_tests/4, test_title/2]).
+-export([moduledoc_tests/5, doc_tests/5, test_title/2]).
 
 %%%=====================================================================
 %%% API functions
@@ -39,8 +39,8 @@ test(Tests, Options) when is_list(Options) ->
 %%% Support functions
 %%%=====================================================================
 
-moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
-    case catch tests(Mod, AttrLn, CodeBlocks,
+moduledoc_tests(Mod, Bindings, AttrLn, CodeBlocks, Tag) ->
+    case catch tests(Mod, Bindings, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
                 case LeftValue of
@@ -98,8 +98,8 @@ moduledoc_tests(Mod, AttrLn, CodeBlocks, Tag) ->
             ])
     end.
 
-doc_tests({M, F, A}, AttrLn, CodeBlocks, Tag) ->
-    case catch tests(M, AttrLn, CodeBlocks,
+doc_tests({M, F, A}, Bindings, AttrLn, CodeBlocks, Tag) ->
+    case catch tests(M, Bindings, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, M, LeftLn), {M, F, A}, fun() ->
                 case LeftValue of
@@ -186,18 +186,19 @@ rebar3_config_opts() ->
             []
     end.
 
-tests(Mod, AttrLn, CodeBlocks, Callback) when
-    is_atom(Mod), is_integer(AttrLn), AttrLn >= 0,
+tests(Mod, Bindings, AttrLn, CodeBlocks, Callback) when
+    is_atom(Mod), (is_map(Bindings) orelse is_list(Bindings)),
+    is_integer(AttrLn), AttrLn >= 0,
     is_list(CodeBlocks), is_function(Callback, 2) ->
     {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
         case code_block_asserts(CodeBlock, AttrLn + CBLn) of
             {ok, Asserts} ->
                 lists:reverse(element(2, lists:foldl(
-                    fun({{Left, LeftLn}, {Right, RightLn}}, {Bindings, Acc1}) ->
+                    fun({{Left, LeftLn}, {Right, RightLn}}, {BindingsAcc, Acc1}) ->
                         LocalFunctionHandler = {value, fun(Name, Args) ->
                             erlang:apply(Mod, Name, Args)
                         end},
-                        {LeftValue, NewBindings} = eval(Left, LeftLn, Bindings, LocalFunctionHandler),
+                        {LeftValue, NewBindings} = eval(Left, LeftLn, BindingsAcc, LocalFunctionHandler),
                         % Skip when no right value
                         case Right of
                             [{var, _, '_'}] ->
@@ -210,7 +211,7 @@ tests(Mod, AttrLn, CodeBlocks, Callback) when
                                 ),
                                 {NewBindings, [Test | Acc1]}
                         end
-                    end, {[], Acc}, lists:reverse(Asserts)
+                    end, {Bindings, Acc}, lists:reverse(Asserts)
                 )));
             {error, Reason} ->
                 throw({error, Reason})
