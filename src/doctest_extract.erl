@@ -1,5 +1,5 @@
 %%%---------------------------------------------------------------------
-%%% Copyright 2024 William Fank Thomé
+%%% Copyright 2024-2025 William Fank Thomé
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -15,17 +15,8 @@
 %%%---------------------------------------------------------------------
 -module(doctest_extract).
 
-% Ignores the false positive:
-% > The pattern {'file', Filename} can never match the type 'false'
--dialyzer({nowarn_function, module_forms/1}).
-
 % API functions
--export([ module_tests/2
-        , module_forms/1
-        , forms_tests/2
-        , code_blocks/2
-        , default_extractors/0
-        ]).
+-export([module_tests/2, code_blocks/2]).
 
 -export_type([ doc_token/0
              , moduledoc_token/0
@@ -35,10 +26,8 @@
              , location/0
              ]).
 
--callback chunks(Args) -> Chunks when
-          Args :: {Mod, Forms},
+-callback chunks(Mod) -> Chunks when
           Mod :: module(),
-          Forms :: [erl_syntax:syntaxTree()],
           Chunks :: [chunk()].
 
 -callback code_blocks(Doc) -> CodeBlocks when
@@ -52,41 +41,13 @@
 -type code_blocks() :: [{binary(), location()}] | none.
 -type location() :: {Ln :: pos_integer(), Col :: pos_integer()}.
 
--include("doctest_check.hrl").
-
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
 
-module_tests(Mod, Opts) when is_atom(Mod) ->
-    case module_forms(Mod) of
-        {ok, Forms} ->
-            forms_tests(Forms, Opts);
-        error ->
-            []
-    end.
-
-module_forms(Mod) ->
-    case code:which(Mod) of
-        cover_compiled ->
-            % There is a bug with the `code:get_doc` and it's not possible to return
-            % the forms for now. After the fix, is possible to get the forms with:
-            % > {file, Filename} = cover:is_compiled(Mod),
-            % > do_module_forms(Filename);
-            % See https://github.com/erlang/otp/pull/9433
-            {ok, []};
-        Filename ->
-            do_module_forms(Filename)
-    end.
-
-forms_tests([], _Opts) ->
-    ignore;
-forms_tests(Forms, Opts) when is_map(Opts) ->
-    Mod = doctest_forms:module(Forms),
-    Extractors = extractors(Opts),
-    {test_desc(Mod), all_test_cases(Extractors, {Mod, Forms}, Opts#{
-        extractors => Extractors
-    })}.
+module_tests(Mod, Opts) when is_atom(Mod), is_map(Opts) ->
+    Extractors = maps:get(extractors, Opts),
+    {test_desc(Mod), all_test_cases(Extractors, Mod, Opts)}.
 
 code_blocks(Doc, RE) when is_binary(Doc) ->
     case re:run(Doc, RE, [global, {capture, all_but_first, index}]) of
@@ -97,30 +58,9 @@ code_blocks(Doc, RE) when is_binary(Doc) ->
             none
     end.
 
--if(?IS_DOC_ATTRS_SUPPORTED).
-default_extractors() ->
-    [doctest_extract_attr].
--else.
-default_extractors() ->
-    [doctest_extract_tag].
--endif.
-
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
-
-do_module_forms(Filename) ->
-    case beam_lib:chunks(Filename, [abstract_code]) of
-        {ok, {_Mod, [{abstract_code, {_, Ast}}]}} ->
-            {ok, Ast};
-        {error, beam_lib, _} ->
-            error
-    end.
-
-extractors(#{extractors := []}) ->
-    default_extractors();
-extractors(#{extractors := Extractors}) when is_list(Extractors) ->
-    Extractors.
 
 test_desc(Mod) ->
     iolist_to_binary(io_lib:format("module '~w'", [Mod])).

@@ -1,5 +1,5 @@
 %%%---------------------------------------------------------------------
-%%% Copyright 2024 William Fank Thomé
+%%% Copyright 2024-2025 William Fank Thomé
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@
 %%% doctest_extract callbacks
 %%%=====================================================================
 
-chunks({Mod, Forms}) ->
-    Filename = doctest_forms:filename(Forms),
+chunks(Mod) when is_atom(Mod) ->
+    {source, Filename} = proplists:lookup(source, Mod:module_info(compile)),
     Comments = erl_comment_scan:file(Filename),
     {Mod, _EDoc, Entries} =
         edoc_extract:source(Filename, edoc_lib:get_doc_env([]), [return_entries]),
