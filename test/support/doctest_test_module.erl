@@ -33,7 +33,7 @@ true
 """.
 -endif.
 
--export([foo/0, bar/0]).
+-export([foo/0, bar/0, bindings/1]).
 
 -if(?IS_DOC_ATTRS_SUPPORTED).
 -doc """
@@ -72,3 +72,16 @@ do_foo() ->
 
 bar() ->
     bar.
+
+-if(?IS_DOC_ATTRS_SUPPORTED).
+-doc """
+For example, #{bindings => #{'Foo' => foo}}
+
+```
+> doctest_test_module:bindings(Foo).
+foo
+```
+""".
+-endif.
+bindings(Foo) ->
+    Foo.

@@ -216,7 +216,12 @@ The options are passed via a map:
     % Default:
     % - OTP < 27: [doctest_extract_tag];
     % - OTP >= 27: [doctest_extract_attr, doctest_extract_tag].
-    extractors => [module()]
+    extractors => [module()],
+
+    % Bind value to variables.
+    % Could be a proplist or a map.
+    % Default: #{}.
+    bindings => erl_eval:binding_struct()
 }
 ```
 
@@ -258,6 +263,14 @@ via a map, e.g., `-doctest #{enabled => true}.`, or via some shortcuts, for exam
   -doctest {extractors, [doctest_extract_attr, doctest_extract_tag]}.
   ```
 
+- `{bindings, erl_eval:binding_struct()}`: equivalent to bindingss option.
+
+  ```erlang
+  -doctest {bindings, #{'Foo' => foo}}.
+  % or
+  % -doctest {bindings, [{'Foo', foo}]}
+  ```
+
 > [!NOTE]
 >
 > Multiple `-doctest` attributes are allowed.
@@ -274,7 +287,8 @@ Options can be globally defined via a
     {moduledoc, true},
     {doc, true},
     {eunit_opts, rebar3_config},
-    {extractors, [doctest_extract_attr, doctest_extract_tag]}
+    {extractors, [doctest_extract_attr, doctest_extract_tag]},
+    {bindings, #{'Foo' => foo}}
 ]}].
 ```
 

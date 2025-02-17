@@ -19,5 +19,6 @@
 
 module_test() ->
     ?assertEqual(ok, doctest:module(doctest_test_module, #{
+        bindings => #{'Foo' => foo},
         extractors => [doctest_extract_attr, doctest_extract_tag]
     })).

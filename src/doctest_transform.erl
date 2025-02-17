@@ -76,6 +76,8 @@ parse_opts([{eunit_opts, EunitOpts} | T], Opts) ->
     parse_opts(T, Opts#{eunit_opts => EunitOpts});
 parse_opts([{extractors, Extractors} | T], Opts) when is_list(Extractors) ->
     parse_opts(T, Opts#{extractors => Extractors});
+parse_opts([{bindings, Bindings} | T], Opts) when is_list(Bindings); is_map(Bindings) ->
+    parse_opts(T, Opts#{bindings => Bindings});
 parse_opts([Map | T], Opts) when is_map(Map) ->
     parse_opts(T, maps:merge(Opts, Map));
 parse_opts([], #{} = Opts) ->

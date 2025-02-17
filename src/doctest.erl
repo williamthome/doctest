@@ -29,7 +29,8 @@
     moduledoc => boolean(),
     doc => boolean() | [{atom(), arity()}],
     eunit_opts => rebar3_config | [term()],
-    extractors => [module()]
+    extractors => [module()],
+    bindings => erl_eval:binding_struct()
 }.
 -type result() :: ok | error.
 
@@ -74,7 +75,8 @@ parse_opts(Opts) when is_map(Opts) ->
         eunit_opts => maps:get(eunit_opts, Opts,
             application:get_env(doctest, eunit_opts, rebar3_config)),
         extractors => maps:get(extractors, Opts,
-            application:get_env(doctest, extractors, doctest_extract:default_extractors()))
+            application:get_env(doctest, extractors, doctest_extract:default_extractors())),
+        bindings => maps:get(bindings, Opts, #{})
     }.
 
 %%%=====================================================================
