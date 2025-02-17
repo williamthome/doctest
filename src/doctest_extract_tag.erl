@@ -32,8 +32,8 @@
 %%% doctest_extract callbacks
 %%%=====================================================================
 
-chunks({Mod, Forms}) ->
-    Filename = doctest_forms:filename(Forms),
+chunks(Mod) when is_atom(Mod) ->
+    {source, Filename} = proplists:lookup(source, Mod:module_info(compile)),
     Comments = erl_comment_scan:file(Filename),
     {Mod, _EDoc, Entries} =
         edoc_extract:source(Filename, edoc_lib:get_doc_env([]), [return_entries]),

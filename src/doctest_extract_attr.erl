@@ -32,7 +32,7 @@
 %%% doctest_extract callbacks
 %%%=====================================================================
 
-chunks({Mod, Forms}) ->
+chunks(Mod) when is_atom(Mod) ->
     case code:get_doc(Mod) of
         {ok, #docs_v1{anno = Anno, module_doc = Lang, docs = Docs}} ->
             case moduledoc_chunk(Mod, Anno, Lang) of
@@ -42,7 +42,7 @@ chunks({Mod, Forms}) ->
                     doc_chunks(Mod, Docs)
             end;
         {error, missing} ->
-            error(debug_info, [{Mod, Forms}], [
+            error(debug_info, [Mod], [
                 {error_info, #{
                     module => Mod,
                     cause => "doctest requires 'debug_info' in compiler options"
@@ -51,7 +51,7 @@ chunks({Mod, Forms}) ->
         {error, cover_compiled} ->
             [];
         {error, Reason} ->
-            error(Reason, [{Mod, Forms}], [
+            error(Reason, [Mod], [
                 {error_info, #{
                     module => Mod,
                     cause => Reason

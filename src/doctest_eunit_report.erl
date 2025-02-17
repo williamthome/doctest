@@ -76,23 +76,28 @@ handle_end(group, Data, State) ->
         [Data, Tests]
     end, State#state.groups)};
 handle_end(test, Data, State) ->
-    {id, Id} = proplists:lookup(id, Data),
     case proplists:get_value(status, Data) of
-        {error, {error, {doctest, Reason}, Stacktrace}} ->
-            erlang:raise(error, {doctest, Reason}, Stacktrace);
+        {error, {error, {assertEqual, _Info}, _Stacktrace}} ->
+            handle_end_1(Data, State);
+        {error, {error, Reason, Stacktrace}} ->
+            erlang:raise(error, Reason, Stacktrace);
         _Status ->
-            GroupId = lists:droplast(Id),
-            State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
-                case orddict:is_key(Id, Tests) of
-                    true ->
-                        [Group, orddict:update(Id, fun([Test]) ->
-                            [maps:merge(Test, maps:from_list(Data))]
-                        end, Tests)];
-                    false ->
-                        [Group, Tests]
-                end
-            end, State#state.groups)}
+            handle_end_1(Data, State)
     end.
+
+handle_end_1(Data, State) ->
+    {id, Id} = proplists:lookup(id, Data),
+    GroupId = lists:droplast(Id),
+    State#state{groups = orddict:update(GroupId, fun([Group, Tests]) ->
+        case orddict:is_key(Id, Tests) of
+            true ->
+                [Group, orddict:update(Id, fun([Test]) ->
+                    [maps:merge(Test, maps:from_list(Data))]
+                end, Tests)];
+            false ->
+                [Group, Tests]
+        end
+    end, State#state.groups)}.
 
 handle_cancel(group, Data, #state{groups = Groups} = State) ->
     {id, Id} = proplists:lookup(id, Data),
@@ -148,7 +153,7 @@ test_info(#{desc := undefined} = D) ->
     D#{tag => <<"unknown">>, file => none}.
 
 guess_ln({M, F, A}) ->
-    case doctest_extract:module_forms(M) of
+    case module_forms(M) of
         {ok, Forms} ->
             case fun_line(Forms, F, A) of
                 {ok, Ln} ->
@@ -158,6 +163,27 @@ guess_ln({M, F, A}) ->
             end;
         error ->
             0
+    end.
+
+module_forms(Mod) ->
+    case code:which(Mod) of
+        cover_compiled ->
+            % There is a bug with the `code:get_doc` and it's not possible to return
+            % the forms for now. After the fix, is possible to get the forms with:
+            % > {file, Filename} = cover:is_compiled(Mod),
+            % > do_module_forms(Filename);
+            % See https://github.com/erlang/otp/pull/9433
+            {ok, []};
+        Filename ->
+            do_module_forms(Filename)
+    end.
+
+do_module_forms(Filename) ->
+    case beam_lib:chunks(Filename, [abstract_code]) of
+        {ok, {_Mod, [{abstract_code, {_, Ast}}]}} ->
+            {ok, Ast};
+        {error, beam_lib, _} ->
+            error
     end.
 
 fun_line([{function, Anno, F, A, _} | _], F, A) ->

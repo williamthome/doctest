@@ -16,7 +16,7 @@
 -module(doctest_eunit).
 
 % API functions
--export([test/1, test/2]).
+-export([test/2]).
 
 % Support functions
 -export([moduledoc_tests/5, doc_tests/5, test_title/2]).
@@ -24,9 +24,6 @@
 %%%=====================================================================
 %%% API functions
 %%%=====================================================================
-
-test(Tests) ->
-    test(Tests, rebar3_config).
 
 test(ignore, _Opts) ->
     ok;

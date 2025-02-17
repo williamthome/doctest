@@ -20,12 +20,11 @@
 -module(doctest).
 
 % API functions
--export([module/1, module/2, forms/2, parse_opts/1]).
+-export([module/1, module/2]).
 
 -export_type([options/0, result/0]).
 
 -type options() :: #{
-    enabled => boolean(),
     moduledoc => boolean(),
     doc => boolean() | [{atom(), arity()}],
     eunit_opts => rebar3_config | [term()],
@@ -39,54 +38,38 @@
 %%%=====================================================================
 
 -spec module(Mod) -> Result when
-      Mod :: module(),
-      Result :: result().
-
+    Mod :: module(),
+    Result :: result().
 module(Mod) ->
     module(Mod, #{}).
 
 -spec module(Mod, Opts) -> Result when
-      Mod :: module(),
-      Opts :: options(),
-      Result :: result().
-
-module(Mod, Opts) ->
-    run(module_tests, Mod, Opts).
-
--spec forms(Forms, Opts) -> Result when
-      Forms :: [erl_syntax:syntaxTree()],
-      Opts :: options(),
-      Result :: result().
-
-forms(Forms, Opts) ->
-    run(forms_tests, Forms, Opts).
-
--spec parse_opts(Opts0) -> Opts1 when
-      Opts0 :: options(),
-      Opts1 :: options().
-parse_opts(Opts) when is_map(Opts) ->
-    #{
-        enabled => maps:get(enabled, Opts,
-            application:get_env(doctest, enabled, true)),
-        moduledoc => maps:get(moduledoc, Opts,
-            application:get_env(doctest, moduledoc, true)),
-        doc => maps:get(doc, Opts,
-            application:get_env(doctest, doc, true)),
-        eunit_opts => maps:get(eunit_opts, Opts,
-            application:get_env(doctest, eunit_opts, rebar3_config)),
-        extractors => maps:get(extractors, Opts,
-            application:get_env(doctest, extractors, doctest_extract:default_extractors())),
-        bindings => maps:get(bindings, Opts, #{})
-    }.
+    Mod :: module(),
+    Opts :: options(),
+    Result :: result().
+module(Mod, Opts0) when is_atom(Mod), is_map(Opts0) ->
+    Opts = parse_opts(Opts0),
+    Tests = doctest_extract:module_tests(Mod, Opts),
+    EUnitOpts = maps:get(eunit_opts, Opts),
+    doctest_eunit:test(Tests, EUnitOpts).
 
 %%%=====================================================================
 %%% Internal functions
 %%%=====================================================================
 
-run(Fun, Payload, Opts) ->
-    do_run(parse_opts(Opts), Fun, Payload).
+parse_opts(Opts) ->
+    #{
+        moduledoc => maps:get(moduledoc, Opts, true),
+        doc => maps:get(doc, Opts, true),
+        eunit_opts => maps:get(eunit_opts, Opts, rebar3_config),
+        extractors => maps:get(extractors, Opts, default_extractors()),
+        bindings => maps:get(bindings, Opts, #{})
+    }.
 
-do_run(#{enabled := true, eunit_opts := EunitOpts} = Opts, Fun, Payload) ->
-    doctest_eunit:test(doctest_extract:Fun(Payload, Opts), EunitOpts);
-do_run(#{enabled := false}, _, _) ->
-    ok.
+-if(?OTP_RELEASE >= 27).
+default_extractors() ->
+    [doctest_extract_attr].
+-else.
+default_extractors() ->
+    [doctest_extract_tag].
+-endif.
