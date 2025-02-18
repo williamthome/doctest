@@ -17,7 +17,7 @@ It is compatible with the [doctests syntax introduced in OTP-28](https://github.
     {test, [
         % 'debug_info' is required to extract doc chunks.
         {erl_opts, [debug_info]},
-        {deps, [{doctest, "~> 0.12"}]}
+        {deps, [{doctest, "~> 0.13"}]}
     ]}
 ]}.
 % 'doctest_eunit_report' is required to pretty print and correctly displays the failed Eunit tests.

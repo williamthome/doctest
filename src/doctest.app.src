@@ -1,6 +1,6 @@
 {application, doctest, [
     {description, "A library to test Erlang documentation"},
-    {vsn, "0.12.0"},
+    {vsn, "0.13.0"},
     {registered, []},
     {applications, [kernel, stdlib]},
     {env, []},
