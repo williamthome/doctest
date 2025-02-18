@@ -72,19 +72,20 @@ all_test_cases(Extractors, Args, Opts) ->
 
 test_cases(Extractor, Chunks, Opts) ->
     Bindings = maps:get(bindings, Opts, #{}),
+    Records = maps:get(records, Opts, []),
     lists:filtermap(fun({Kind, Ln, Doc}) ->
         case {Extractor:code_blocks(Doc), Kind} of
             {{ok, CodeBlocks}, {doc, {M, F, A}, Tag}} ->
                 case should_test_doc({M, F, A}, Opts) of
                     true ->
-                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Bindings, Ln, CodeBlocks, Tag)}};
+                        {true, {Ln, doctest_eunit:doc_tests({M, F, A}, Bindings, Records, Ln, CodeBlocks, Tag)}};
                     false ->
                         false
                 end;
             {{ok, CodeBlocks}, {moduledoc, M, Tag}} ->
                 case should_test_moduledoc(Opts) of
                     true ->
-                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Bindings, Ln, CodeBlocks, Tag)}};
+                        {true, {Ln, doctest_eunit:moduledoc_tests(M, Bindings, Records, Ln, CodeBlocks, Tag)}};
                     false ->
                         false
                 end;

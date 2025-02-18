@@ -25,7 +25,8 @@
     doc => boolean() | [{atom(), arity()}],
     eunit_opts => rebar3_config | [term()],
     extractors => [module()],
-    bindings => erl_eval:binding_struct()
+    bindings => erl_eval:binding_struct(),
+    records => [{Name :: atom(), Fields :: [atom()]}]
 }.
 -type result() :: ok | error.
 
@@ -59,7 +60,8 @@ parse_opts(Opts) ->
         doc => maps:get(doc, Opts, true),
         eunit_opts => maps:get(eunit_opts, Opts, rebar3_config),
         extractors => maps:get(extractors, Opts, default_extractors()),
-        bindings => maps:get(bindings, Opts, #{})
+        bindings => maps:get(bindings, Opts, #{}),
+        records => maps:get(records, Opts, [])
     }.
 
 -if(?OTP_RELEASE >= 27).

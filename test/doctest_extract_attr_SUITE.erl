@@ -33,13 +33,20 @@ true
 ```
 """.
 
+-record(foo, {foo}).
+-record(foobar, {foo, bar}).
+
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
 doctest_test() ->
     doctest:module(?MODULE, #{
+        extractors => [doctest_extract_attr],
         bindings => #{'M' => ?MODULE},
-        extractors => [doctest_extract_attr]
+        records => [
+            {foo, record_info(fields, foo)},
+            {foobar, record_info(fields, foobar)}
+        ]
     }).
 -endif.
 
@@ -124,4 +131,17 @@ ok
 """.
 shell_format_test() ->
     ok.
+
+-doc """
+```
+> Foo0 = #foo{}.
+> Foo = Foo0#foo{foo = foo}.
+> Foobar = #foobar{foo = foo, bar = bar}.
+#foobar{foo = foo, bar = bar}
+> M:records_test().
+[#foo{foo = foo}, #foobar{foo = foo, bar = bar}]
+```
+""".
+records_test() ->
+    [#foo{foo = foo}, #foobar{foo = foo, bar = bar}].
 -endif.
