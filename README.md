@@ -150,7 +150,12 @@ doctest_test() ->
 
         % Bind value to variables. Could be a proplist or a map.
         % Spec: erl_eval:binding_struct()
-        bindings => #{}
+        bindings => #{},
+
+        % Define records to be expanded/compiled to tuple expressions.
+        % Spec: [{Name :: atom(), Fields :: [atom()]}]
+        % Example: [{RecName, record_info(fields, RecName)}]
+        records => []
     }).
 -endif.
 

@@ -19,7 +19,12 @@
 -export([test/2]).
 
 % Support functions
--export([moduledoc_tests/5, doc_tests/5, test_title/2]).
+-export([moduledoc_tests/6, doc_tests/6, test_title/2]).
+
+-dialyzer({nowarn_function, tests/6}).
+-dialyzer({nowarn_function, eval/4}).
+-dialyzer({nowarn_function, eval/5}).
+-dialyzer({nowarn_function, unwrap/1}).
 
 %%%=====================================================================
 %%% API functions
@@ -36,8 +41,8 @@ test(Tests, Options) when is_list(Options) ->
 %%% Support functions
 %%%=====================================================================
 
-moduledoc_tests(Mod, Bindings, AttrLn, CodeBlocks, Tag) ->
-    case catch tests(Mod, Bindings, AttrLn, CodeBlocks,
+moduledoc_tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
+    case catch tests(Mod, Bindings, Records, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
                 case LeftValue of
@@ -65,7 +70,7 @@ moduledoc_tests(Mod, Bindings, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, ErrInfo}} ->
-            error({doctest, format}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, format}, [Mod, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, ErrInfo#{
                     attribute => moduledoc,
                     module => Mod,
@@ -73,7 +78,7 @@ moduledoc_tests(Mod, Bindings, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, {eval, Expr, Ln, Bindings}}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, {eval, Expr, Ln, Bindings}}, [Mod, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
@@ -84,7 +89,7 @@ moduledoc_tests(Mod, Bindings, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {parse, Expr, Ln, Reason}} ->
-            error({doctest, {eval, Expr, Ln}}, [Mod, AttrLn, CodeBlocks], [
+            error({doctest, {eval, Expr, Ln}}, [Mod, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => moduledoc,
                     module => Mod,
@@ -95,8 +100,8 @@ moduledoc_tests(Mod, Bindings, AttrLn, CodeBlocks, Tag) ->
             ])
     end.
 
-doc_tests({M, F, A}, Bindings, AttrLn, CodeBlocks, Tag) ->
-    case catch tests(M, Bindings, AttrLn, CodeBlocks,
+doc_tests({M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
+    case catch tests(M, Bindings, Records, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, M, LeftLn), {M, F, A}, fun() ->
                 case LeftValue of
@@ -126,7 +131,7 @@ doc_tests({M, F, A}, Bindings, AttrLn, CodeBlocks, Tag) ->
         {ok, Tests} ->
             Tests;
         {error, {format, ErrInfo}} ->
-            error({doctest, format}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, format}, [{M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, ErrInfo#{
                     attribute => doc,
                     module => M,
@@ -136,7 +141,7 @@ doc_tests({M, F, A}, Bindings, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {eval, Expr, Ln, Bindings, Reason}} ->
-            error({doctest, {eval, Expr, Ln, Bindings}}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {eval, Expr, Ln, Bindings}}, [{M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
@@ -149,7 +154,7 @@ doc_tests({M, F, A}, Bindings, AttrLn, CodeBlocks, Tag) ->
                 }}
             ]);
         {error, {parse, Expr, Ln, Reason}} ->
-            error({doctest, {parse, Expr}}, [{M, F, A}, AttrLn, CodeBlocks], [
+            error({doctest, {parse, Expr}}, [{M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => doc,
                     module => M,
@@ -183,25 +188,27 @@ rebar3_config_opts() ->
             []
     end.
 
-tests(Mod, Bindings, AttrLn, CodeBlocks, Callback) when
+tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Callback) when
     is_atom(Mod), (is_map(Bindings) orelse is_list(Bindings)),
+    is_list(Records),
     is_integer(AttrLn), AttrLn >= 0,
-    is_list(CodeBlocks), is_function(Callback, 2) ->
+    is_list(CodeBlocks), is_function(Callback, 2)
+->
+    LocalFunctionHandler = {value, fun(Name, Args) ->
+        erlang:apply(Mod, Name, Args)
+    end},
     {ok, lists:foldl(fun({CodeBlock, {CBLn, _CBCol}}, Acc) ->
         case code_block_asserts(CodeBlock, AttrLn + CBLn) of
             {ok, Asserts} ->
                 lists:reverse(element(2, lists:foldl(
                     fun({{Left, LeftLn}, {Right, RightLn}}, {BindingsAcc, Acc1}) ->
-                        LocalFunctionHandler = {value, fun(Name, Args) ->
-                            erlang:apply(Mod, Name, Args)
-                        end},
-                        {LeftValue, NewBindings} = eval(Left, LeftLn, BindingsAcc, LocalFunctionHandler),
+                        {LeftValue, NewBindings} = eval(Left, LeftLn, BindingsAcc, Records, LocalFunctionHandler),
                         % Skip when no right value
                         case Right of
                             [{var, _, '_'}] ->
                                 {NewBindings, Acc1};
                             _ ->
-                                {RightValue, _} = eval(Right, RightLn, []),
+                                {RightValue, _} = eval(Right, RightLn, [], Records),
                                 Test = Callback(
                                     {pp(Left), LeftLn, LeftValue},
                                     {pp(Right), RightLn, RightValue}
@@ -218,18 +225,34 @@ tests(Mod, Bindings, AttrLn, CodeBlocks, Callback) when
 desc(Tag, Mod, Ln) ->
     iolist_to_binary(io_lib:format("doctest ~s\s~s", [Tag, test_title(Mod, Ln)])).
 
-eval(Exprs, Ln, Bindings) ->
-    eval(Exprs, Ln, Bindings, none).
+eval(Exprs, Ln, Bindings, Records) ->
+    eval(Exprs, Ln, Bindings, Records, none).
 
-eval(Exprs, Ln, Bindings, LocalFunctionHandler) ->
+% See https://erlangforums.com/t/how-to-evaluate-expressions-containing-record-reference
+eval(Exprs0, Ln, Bindings, Records, LocalFunctionHandler) ->
     try
+        RecordsAttrs = [record_attribute(Name, Fields) || {Name, Fields} <- Records],
+        FakeModForms = RecordsAttrs ++ wrap(Exprs0),
+        Exprs = unwrap(lists:last(erl_expand_records:module(FakeModForms, []))),
         {value, Value, NewBindings} =
             erl_eval:exprs(Exprs, Bindings, LocalFunctionHandler),
         {Value, NewBindings}
     catch
         _Class:Reason:Stacktrace ->
-            throw({error, {eval, pp(Exprs), Ln, Bindings, {Reason, Stacktrace}}})
+            throw({error, {eval, pp(Exprs0), Ln, Bindings, {Reason, Stacktrace}}})
     end.
+
+record_attribute(Name, Fields0) when is_atom(Name), is_list(Fields0) ->
+    Fields1 = [<<$', (atom_to_binary(Field))/binary, $'>> || Field <- Fields0],
+    Fields = lists:join(", ", Fields1),
+    IOList = io_lib:format("-record('~p', {~s}).", [Name, Fields]),
+    merl:quote(iolist_to_binary(IOList)).
+
+wrap(Expr) ->
+    [{function, 1, {atom, 1, foo}, 1, [{clause, 1, [], [], Expr}]}].
+
+unwrap({function, 1, {atom, 1, foo}, 1, [{clause, 1, [], [], Expr}]}) ->
+    Expr.
 
 pp(Exprs) ->
     iolist_to_binary(erl_pp:exprs(Exprs)).
