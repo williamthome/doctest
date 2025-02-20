@@ -14,9 +14,9 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_extract_attr_SUITE).
--compile([export_all, nowarn_export_all]).
-
 -if(?OTP_RELEASE >= 27).
+-feature(maybe_expr, enable).
+-compile([export_all, nowarn_export_all]).
 -moduledoc """
 Text before.
 
