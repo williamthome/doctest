@@ -12,7 +12,7 @@ It is compatible with the [doctests syntax introduced in OTP-28](https://github.
 
 ```erlang
 % rebar.config
-% {minimum_otp_vsn, "24"}.
+% {minimum_otp_vsn, "25"}.
 {profiles, [
     {test, [
         % 'debug_info' is required to extract doc chunks.
