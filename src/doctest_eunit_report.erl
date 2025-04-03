@@ -79,7 +79,7 @@ handle_end(test, Data, State) ->
     case proplists:get_value(status, Data) of
         {error, {error, {assertEqual, _Info}, _Stacktrace}} ->
             handle_end_1(Data, State);
-        {error, {error, Reason, Stacktrace}} ->
+        {error, {_, Reason, Stacktrace}} ->
             erlang:raise(error, Reason, Stacktrace);
         _Status ->
             handle_end_1(Data, State)

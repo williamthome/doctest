@@ -14,6 +14,9 @@
 %%% limitations under the License.
 %%%---------------------------------------------------------------------
 -module(doctest_extract_tag_SUITE).
+-if(?OTP_RELEASE >= 25).
+-feature(maybe_expr, enable).
+-endif.
 -compile([export_all, nowarn_export_all]).
 
 -record(foo, {foo}).
