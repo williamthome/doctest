@@ -36,7 +36,7 @@ chunks(Mod) when is_atom(Mod) ->
     {source, Filename} = proplists:lookup(source, Mod:module_info(compile)),
     Comments = erl_comment_scan:file(Filename),
     {Mod, _EDoc, Entries} =
-        edoc_extract:source(Filename, edoc_lib:get_doc_env([]), [return_entries]),
+        edoc_extract:source(Filename, edoc_lib:get_doc_env([]), [preprocess, return_entries]),
     lists:filtermap(fun({Ln, Data}) ->
         case search_entry_comments(Ln, Comments) of
             {value, EntryComments} ->
