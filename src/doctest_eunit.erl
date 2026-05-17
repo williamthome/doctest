@@ -42,7 +42,7 @@ test(Tests, Options) when is_list(Options) ->
 %%%=====================================================================
 
 moduledoc_tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
-    case catch tests(Mod, Bindings, Records, AttrLn, CodeBlocks,
+    try tests(Mod, Bindings, Records, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, Mod, LeftLn), {Mod, moduledoc, 0}, fun() ->
                 case LeftValue of
@@ -68,8 +68,9 @@ moduledoc_tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
         end
     ) of
         {ok, Tests} ->
-            Tests;
-        {error, {format, ErrInfo}} ->
+            Tests
+    catch
+        throw:{error, {format, ErrInfo}} ->
             error({doctest, format}, [Mod, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, ErrInfo#{
                     attribute => moduledoc,
@@ -77,7 +78,7 @@ moduledoc_tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
                     cause => format
                 }}
             ]);
-        {error, {eval, Expr, Ln, Bindings, Reason}} ->
+        throw:{error, {eval, Expr, Ln, Bindings, Reason}} ->
             error({doctest, {eval, Expr, Ln, Bindings}}, [Mod, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => moduledoc,
@@ -88,7 +89,7 @@ moduledoc_tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
                     line => Ln
                 }}
             ]);
-        {error, {parse, Expr, Ln, Reason}} ->
+        throw:{error, {parse, Expr, Ln, Reason}} ->
             error({doctest, {eval, Expr, Ln}}, [Mod, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => moduledoc,
@@ -101,7 +102,7 @@ moduledoc_tests(Mod, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
     end.
 
 doc_tests({M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
-    case catch tests(M, Bindings, Records, AttrLn, CodeBlocks,
+    try tests(M, Bindings, Records, AttrLn, CodeBlocks,
         fun({Left, LeftLn, LeftValue}, {Right, RightLn, RightValue}) ->
             {desc(Tag, M, LeftLn), {M, F, A}, fun() ->
                 case LeftValue of
@@ -129,8 +130,9 @@ doc_tests({M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
         end
     ) of
         {ok, Tests} ->
-            Tests;
-        {error, {format, ErrInfo}} ->
+            Tests
+    catch
+        throw:{error, {format, ErrInfo}} ->
             error({doctest, format}, [{M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, ErrInfo#{
                     attribute => doc,
@@ -140,7 +142,7 @@ doc_tests({M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
                     cause => format
                 }}
             ]);
-        {error, {eval, Expr, Ln, Bindings, Reason}} ->
+        throw:{error, {eval, Expr, Ln, Bindings, Reason}} ->
             error({doctest, {eval, Expr, Ln, Bindings}}, [{M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => doc,
@@ -153,7 +155,7 @@ doc_tests({M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag) ->
                     line => Ln
                 }}
             ]);
-        {error, {parse, Expr, Ln, Reason}} ->
+        throw:{error, {parse, Expr, Ln, Reason}} ->
             error({doctest, {parse, Expr}}, [{M, F, A}, Bindings, Records, AttrLn, CodeBlocks, Tag], [
                 {error_info, #{
                     attribute => doc,
@@ -371,10 +373,13 @@ check_more_format(Ln, Ws) ->
 check_left_index(undefined, _Ln) ->
     ok;
 check_left_index(N, Ln) ->
-    case catch binary_to_integer(N) =:= Ln of
-        true ->
+    try binary_to_integer(N) of
+        IntN when IntN =:= Ln ->
             ok;
         _ ->
+            error
+    catch
+        error:badarg ->
             error
     end.
 
